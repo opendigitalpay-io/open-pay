@@ -9,15 +9,18 @@ import (
 	"github.com/opendigitalpay-io/open-pay/internal/common/server"
 	"github.com/opendigitalpay-io/open-pay/internal/common/uid"
 	"github.com/opendigitalpay-io/open-pay/internal/storage"
+	"github.com/opendigitalpay-io/open-pay/internal/topup"
 )
 
 type HTTPServer struct {
+	topupService topup.Service
 	repo         *storage.Repository // FIXME: this should be removed
-	uidGenerator uid.Generator // FIXME: this should be removed
+	uidGenerator uid.Generator       // FIXME: this should be removed
 }
 
-func NewHTTPServer(repo *storage.Repository, uidGenerator uid.Generator) *HTTPServer {
+func NewHTTPServer(topupService topup.Service, repo *storage.Repository, uidGenerator uid.Generator) *HTTPServer {
 	return &HTTPServer{
+		topupService: topupService,
 		repo:         repo,
 		uidGenerator: uidGenerator,
 	}
