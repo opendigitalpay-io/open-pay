@@ -8,7 +8,6 @@ import (
 type ServerInterface interface {
 	// GET /health
 	GetHealthStatus() func(*gin.Context)
-
 }
 
 func HandlerFromMux(si ServerInterface, e *gin.Engine) http.Handler {

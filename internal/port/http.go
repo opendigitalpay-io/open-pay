@@ -13,7 +13,7 @@ import (
 
 type HTTPServer struct {
 	repo         *storage.Repository // FIXME: this should be removed
-	uidGenerator uid.Generator // FIXME: this should be removed
+	uidGenerator uid.Generator       // FIXME: this should be removed
 }
 
 func NewHTTPServer(repo *storage.Repository, uidGenerator uid.Generator) *HTTPServer {
