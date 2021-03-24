@@ -1,7 +1,20 @@
 package errorz
 
+import (
+	"fmt"
+	"strings"
+)
+
 type Response struct {
 	ErrorFields []Field `json:"errors"`
+}
+
+func (r Response) Error() string {
+	var sb strings.Builder
+	for _, f := range r.ErrorFields {
+		sb.WriteString(fmt.Sprintf("CATEGORY:%s, CODE:%s, MSG:%s\n", f.Category, f.Code, f.Message))
+	}
+	return sb.String()
 }
 
 type Field struct {
@@ -50,9 +63,9 @@ func NewIdemKeyError(err error) Response {
 func NewTransactionError(err error) Response {
 	return Response{[]Field{{
 		Category: InvalidRequestError,
-		Code: InvalidTransaction,
-		DocURL: APIDocURL,
-		Message: err.Error(),
+		Code:     InvalidTransaction,
+		DocURL:   APIDocURL,
+		Message:  err.Error(),
 	}}}
 }
 
