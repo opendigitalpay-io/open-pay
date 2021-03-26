@@ -13,6 +13,7 @@ type Service interface {
 
 type Repository interface {
 	AddTopup(context.Context, domain.Topup) (domain.Topup, error)
+
 	TxnExec(context.Context, func(context.Context) (interface{}, error)) (interface{}, error)
 }
 

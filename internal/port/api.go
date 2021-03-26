@@ -9,11 +9,15 @@ type ServerInterface interface {
 	// GET /health
 	GetHealthStatus() func(*gin.Context)
 
+	// GET /v1/order/:id
+	GetOrder() func(*gin.Context)
+	// POST /v1/order/
+	AddOrder() func(*gin.Context)
+	// POST /v1/order/:id/refund
+	AddRefund() func(*gin.Context)
+
 	// POST /v1/user/{id}/topup
 	AddTopup() func(*gin.Context)
-
-	// POST /v1/order/:id/refund
-	AddRefund() func(ctx *gin.Context)
 }
 
 func HandlerFromMux(si ServerInterface, e *gin.Engine) http.Handler {
@@ -22,11 +26,17 @@ func HandlerFromMux(si ServerInterface, e *gin.Engine) http.Handler {
 
 	v1 := e.Group("/v1")
 	{
+		// order
+		o := v1.Group("/order")
+		{
+			o.GET("/:id", si.AddOrder())
+			o.POST("", si.AddOrder())
+			o.POST("/:id/refund", si.AddRefund())
+		}
+
 		// topup
 		v1.POST("/user/:id/topup", si.AddTopup())
 
-		// refund
-		v1.POST("/order/:id/refund", si.AddRefund())
 	}
 
 	return e

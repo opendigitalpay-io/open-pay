@@ -12,8 +12,9 @@ type Service interface {
 
 type Repository interface {
 	AddRefund(context.Context, domain.Refund) (domain.Refund, error)
-	// FixMe: Order Repository should implement this method
+
 	GetOrder(context.Context, uint64) (domain.Order, error)
+
 	TxnExec(context.Context, func(context.Context) (interface{}, error)) (interface{}, error)
 }
 
