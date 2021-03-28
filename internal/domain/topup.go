@@ -7,7 +7,7 @@ type Topup struct {
 	Amount          int64
 	Currency        string
 	Status          STATUS
-	Metadata        []byte
+	Metadata        map[string]interface{}
 	CreatedAt       int64
 	UpdatedAt       int64
 }

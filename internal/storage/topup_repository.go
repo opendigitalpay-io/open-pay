@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/opendigitalpay-io/open-pay/internal/domain"
 	"time"
 )
@@ -22,17 +23,30 @@ func (t *topupModel) TableName() string {
 	return "topups"
 }
 
-func (t *topupModel) model(topup domain.Topup) {
+func (t *topupModel) model(topup domain.Topup) error {
 	t.ID = topup.ID
 	t.CustomerID = topup.CustomerID
 	t.PaymentMethodID = topup.PaymentMethodID
 	t.Amount = topup.Amount
 	t.Currency = topup.Currency
 	t.Status = topup.Status.String()
-	t.Metadata = topup.Metadata
+	metadata, err := jsoniter.Marshal(topup.Metadata)
+	if err != nil {
+		return err
+	}
+
+	t.Metadata = metadata
+
+	return nil
 }
 
-func (t *topupModel) domain() domain.Topup {
+func (t *topupModel) domain() (domain.Topup, error) {
+	var metadata map[string]interface{}
+	err := jsoniter.Unmarshal(t.Metadata, &metadata)
+	if err != nil {
+		return domain.Topup{}, err
+	}
+
 	return domain.Topup{
 		ID:              t.ID,
 		CustomerID:      t.CustomerID,
@@ -40,23 +54,26 @@ func (t *topupModel) domain() domain.Topup {
 		Amount:          t.Amount,
 		Currency:        t.Currency,
 		Status:          domain.STATUS(t.Status),
-		Metadata:        t.Metadata,
+		Metadata:        metadata,
 		CreatedAt:       t.CreatedAt,
 		UpdatedAt:       t.UpdatedAt,
-	}
+	}, nil
 }
 
-func (r *Repository) AddTopup(ctx context.Context, topup domain.Topup) (domain.Topup, error) {
+func (r *Repository) AddTopUp(ctx context.Context, topup domain.Topup) (domain.Topup, error) {
 	db := r.DB(ctx)
 
 	var t topupModel
-	t.model(topup)
+	err := t.model(topup)
+	if err != nil {
+		return domain.Topup{}, wrapDBError(err, "topup")
+	}
 
 	now := time.Now().Unix()
 	t.CreatedAt = now
 	t.UpdatedAt = now
 
-	err := db.Create(&t).Error
+	err = db.Create(&t).Error
 	if err != nil {
 		return domain.Topup{}, wrapDBError(err, "topup")
 	}
@@ -67,15 +84,18 @@ func (r *Repository) AddTopup(ctx context.Context, topup domain.Topup) (domain.T
 	return topup, nil
 }
 
-func (r *Repository) UpdateTopup(ctx context.Context, topup domain.Topup) (domain.Topup, error) {
+func (r *Repository) UpdateTopUp(ctx context.Context, topup domain.Topup) (domain.Topup, error) {
 	db := r.DB(ctx)
 
 	var t topupModel
-	t.model(topup)
+	err := t.model(topup)
+	if err != nil {
+		return domain.Topup{}, wrapDBError(err, "topup")
+	}
 
 	t.UpdatedAt = time.Now().Unix()
 
-	err := db.Model(&t).Updates(&t).Error
+	err = db.Model(&t).Updates(&t).Error
 	if err != nil {
 		return domain.Topup{}, wrapDBError(err, "topup")
 	}
@@ -85,7 +105,7 @@ func (r *Repository) UpdateTopup(ctx context.Context, topup domain.Topup) (domai
 	return topup, nil
 }
 
-func (r *Repository) GetTopup(ctx context.Context, topupID uint64) (domain.Topup, error) {
+func (r *Repository) GetTopUp(ctx context.Context, topupID uint64) (domain.Topup, error) {
 	db := r.DB(ctx)
 
 	var t topupModel
@@ -94,7 +114,10 @@ func (r *Repository) GetTopup(ctx context.Context, topupID uint64) (domain.Topup
 		return domain.Topup{}, wrapDBError(err, "topup")
 	}
 
-	topup := t.domain()
+	topup, err := t.domain()
+	if err != nil {
+		return domain.Topup{}, wrapDBError(err, "topup")
+	}
 
 	return topup, nil
 }

@@ -12,7 +12,7 @@ type Service interface {
 }
 
 type Repository interface {
-	AddTopup(context.Context, domain.Topup) (domain.Topup, error)
+	AddTopUp(context.Context, domain.Topup) (domain.Topup, error)
 
 	TxnExec(context.Context, func(context.Context) (interface{}, error)) (interface{}, error)
 }
@@ -45,7 +45,7 @@ func (s *service) AddTopup(ctx context.Context, userID uint64, req api.AddTopupR
 			Status:          domain.CREATED,
 		}
 
-		topup, err = s.repo.AddTopup(ctx, topup)
+		topup, err = s.repo.AddTopUp(ctx, topup)
 		if err != nil {
 			return domain.Topup{}, err
 		}

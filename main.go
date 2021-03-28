@@ -15,13 +15,13 @@ import (
 
 func main() {
 	ctx := context.Background()
-	repository, err := storage.NewRepository(ctx, &storage.Config{})
+	uidGenerator, err := uid.NewGenerator(ctx)
+
 	if err != nil {
 		panic(err)
 	}
 
-	uidGenerator, err := uid.NewGenerator(ctx)
-
+	repository, err := storage.NewRepository(ctx, &storage.Config{}, uidGenerator)
 	if err != nil {
 		panic(err)
 	}
