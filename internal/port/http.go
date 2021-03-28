@@ -16,14 +16,14 @@ import (
 
 type HTTPServer struct {
 	orderService  order.Service
-	topupService  topup.Service
+	topUpService  topup.Service
 	refundService refund.Service
 }
 
-func NewHTTPServer(orderService order.Service, topupService topup.Service, refundService refund.Service) *HTTPServer {
+func NewHTTPServer(orderService order.Service, topUpService topup.Service, refundService refund.Service) *HTTPServer {
 	return &HTTPServer{
 		orderService:  orderService,
-		topupService:  topupService,
+		topUpService:  topUpService,
 		refundService: refundService,
 	}
 }

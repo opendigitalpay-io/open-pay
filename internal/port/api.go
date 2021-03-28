@@ -17,7 +17,7 @@ type ServerInterface interface {
 	AddRefund() func(*gin.Context)
 
 	// POST /v1/user/{id}/topup
-	AddTopup() func(*gin.Context)
+	AddTopUp() func(*gin.Context)
 }
 
 func HandlerFromMux(si ServerInterface, e *gin.Engine) http.Handler {
@@ -35,7 +35,7 @@ func HandlerFromMux(si ServerInterface, e *gin.Engine) http.Handler {
 		}
 
 		// topup
-		v1.POST("/user/:id/topup", si.AddTopup())
+		v1.POST("/user/:id/topup", si.AddTopUp())
 
 	}
 

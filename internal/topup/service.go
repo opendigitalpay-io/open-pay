@@ -8,11 +8,11 @@ import (
 )
 
 type Service interface {
-	AddTopup(context.Context, uint64, api.AddTopupRequest) (domain.Topup, error)
+	AddTopUp(context.Context, uint64, api.AddTopUpRequest) (domain.TopUp, error)
 }
 
 type Repository interface {
-	AddTopUp(context.Context, domain.Topup) (domain.Topup, error)
+	AddTopUp(context.Context, domain.TopUp) (domain.TopUp, error)
 
 	TxnExec(context.Context, func(context.Context) (interface{}, error)) (interface{}, error)
 }
@@ -29,15 +29,15 @@ func NewService(repo Repository, uidGenerator uid.Generator) Service {
 	}
 }
 
-func (s *service) AddTopup(ctx context.Context, userID uint64, req api.AddTopupRequest) (domain.Topup, error) {
+func (s *service) AddTopUp(ctx context.Context, userID uint64, req api.AddTopUpRequest) (domain.TopUp, error) {
 	t, err := s.repo.TxnExec(ctx, func(ctxWithTxn context.Context) (interface{}, error) {
-		topupID, err := s.uidGenerator.NextID()
+		topUpID, err := s.uidGenerator.NextID()
 		if err != nil {
-			return domain.Topup{}, err
+			return domain.TopUp{}, err
 		}
 
-		topup := domain.Topup{
-			ID:              topupID,
+		topUp := domain.TopUp{
+			ID:              topUpID,
 			CustomerID:      userID,
 			PaymentMethodID: req.PaymentMethodID,
 			Amount:          req.Amount,
@@ -45,17 +45,17 @@ func (s *service) AddTopup(ctx context.Context, userID uint64, req api.AddTopupR
 			Status:          domain.CREATED,
 		}
 
-		topup, err = s.repo.AddTopUp(ctx, topup)
+		topUp, err = s.repo.AddTopUp(ctx, topUp)
 		if err != nil {
-			return domain.Topup{}, err
+			return domain.TopUp{}, err
 		}
 
-		return topup, nil
+		return topUp, nil
 	})
 
 	if err != nil {
-		return domain.Topup{}, nil
+		return domain.TopUp{}, nil
 	}
 
-	return t.(domain.Topup), nil
+	return t.(domain.TopUp), nil
 }

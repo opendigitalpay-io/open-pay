@@ -1,6 +1,6 @@
 package domain
 
-type Topup struct {
+type TopUp struct {
 	ID              uint64
 	CustomerID      uint64
 	PaymentMethodID uint64

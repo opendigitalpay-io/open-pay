@@ -26,13 +26,13 @@ func main() {
 		panic(err)
 	}
 
-	orserService := order.NewService(repository, uidGenerator)
-	topupService := topup.NewService(repository, uidGenerator)
+	orderService := order.NewService(repository, uidGenerator)
+	topUpService := topup.NewService(repository, uidGenerator)
 	refundService := refund.NewService(repository, uidGenerator)
 
 	server.RunHTTPServer(func(engine *gin.Engine) http.Handler {
 		return port.HandlerFromMux(
-			port.NewHTTPServer(orserService, topupService, refundService),
+			port.NewHTTPServer(orderService, topUpService, refundService),
 			engine,
 		)
 	})
