@@ -2,12 +2,14 @@ package storage
 
 import (
 	"context"
+	"github.com/opendigitalpay-io/open-pay/internal/common/uid"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
 type Repository struct {
-	client *client
+	client       *client
+	uidGenerator uid.Generator
 }
 
 type client struct {
@@ -17,14 +19,15 @@ type client struct {
 // NewRepository sets up the database connections using the configuration in the
 // process's environment variables. This should be called just once per port
 // instance.
-func NewRepository(ctx context.Context, config *Config) (*Repository, error) {
+func NewRepository(ctx context.Context, config *Config, uidGenerator uid.Generator) (*Repository, error) {
 	client, err := newClient(ctx, config)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Repository{
-		client: client,
+		client:       client,
+		uidGenerator: uidGenerator,
 	}, nil
 }
 

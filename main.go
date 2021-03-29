@@ -15,24 +15,24 @@ import (
 
 func main() {
 	ctx := context.Background()
-	repository, err := storage.NewRepository(ctx, &storage.Config{})
-	if err != nil {
-		panic(err)
-	}
-
 	uidGenerator, err := uid.NewGenerator(ctx)
 
 	if err != nil {
 		panic(err)
 	}
 
-	orserService := order.NewService(repository, uidGenerator)
-	topupService := topup.NewService(repository, uidGenerator)
+	repository, err := storage.NewRepository(ctx, &storage.Config{}, uidGenerator)
+	if err != nil {
+		panic(err)
+	}
+
+	orderService := order.NewService(repository, uidGenerator)
+	topUpService := topup.NewService(repository, uidGenerator)
 	refundService := refund.NewService(repository, uidGenerator)
 
 	server.RunHTTPServer(func(engine *gin.Engine) http.Handler {
 		return port.HandlerFromMux(
-			port.NewHTTPServer(orserService, topupService, refundService),
+			port.NewHTTPServer(orderService, topUpService, refundService),
 			engine,
 		)
 	})

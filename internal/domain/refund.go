@@ -6,7 +6,7 @@ type Refund struct {
 	Amount      int64
 	Status      STATUS
 	RefundCount int32
-	Metadata    []byte
+	Metadata    map[string]interface{}
 	CreatedAt   int64
 	UpdatedAt   int64
 }

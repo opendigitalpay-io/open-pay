@@ -5,30 +5,30 @@ import (
 	"github.com/opendigitalpay-io/open-pay/internal/port/api"
 )
 
-func (h *HTTPServer) AddTopup() func(ctx *gin.Context) {
+func (h *HTTPServer) AddTopUp() func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
-		var topupUriParam api.AddTopupUriParameter
-		var topupRequest api.AddTopupRequest
+		var topUpUriParam api.AddTopUpUriParameter
+		var topUpRequest api.AddTopUpRequest
 
-		if err := ctx.ShouldBindUri(&topupUriParam); err != nil {
+		if err := ctx.ShouldBindUri(&topUpUriParam); err != nil {
 			h.RespondWithError(ctx, err)
 			return
 		}
 
-		if err := ctx.ShouldBindJSON(&topupRequest); err != nil {
+		if err := ctx.ShouldBindJSON(&topUpRequest); err != nil {
 			h.RespondWithError(ctx, err)
 			return
 		}
 
-		topup, err := h.topupService.AddTopup(ctx, topupUriParam.ID, topupRequest)
+		topUp, err := h.topUpService.AddTopUp(ctx, topUpUriParam.ID, topUpRequest)
 
 		if err != nil {
 			h.RespondWithError(ctx, err)
 			return
 		}
 
-		addTopupResp := api.AddTopupResponse{
-			ID: topup.ID,
+		addTopupResp := api.AddTopUpResponse{
+			ID: topUp.ID,
 		}
 
 		h.RespondWithOK(ctx, addTopupResp)
