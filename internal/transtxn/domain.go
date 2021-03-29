@@ -1,4 +1,4 @@
-package transfer_transaction
+package transtxn
 
 import (
 	"github.com/opendigitalpay-io/open-pay/internal/domain"
@@ -40,6 +40,7 @@ func Create(dto TransferTransactionDTO) (TransferTransaction, error) {
 		Type:          dto.Type,
 		Amount:        dto.Amount,
 		Currency:      dto.Currency,
+		Status:        domain.CREATED,
 		Metadata:      dto.Metadata,
 	}, nil
 }

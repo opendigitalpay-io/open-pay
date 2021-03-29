@@ -45,7 +45,21 @@ CREATE TABLE IF NOT EXISTS `refunds`
 )
 DEFAULT CHARSET = utf8mb4;
 
-CREATE TABLE IF NOT EXISTS  `transfer_transactions`
+CREATE TABLE IF NOT EXISTS `transfers`
+(
+    `id` bigint(11) NOT NULL,
+    `order_id` bigint(11) NOT NULL,
+    `type` varchar(255) NOT NULL,
+    `amount` bigint(11) NOT NULL,
+    `currency` varchar(255) NOT NULL,
+    `status` varchar(255) NOT NULL,
+    `created_at` bigint(11) NOT NULL,
+    `updated_at` bigint(11) NOT NULL,
+    PRIMARY KEY (`id`)
+)
+DEFAULT CHARSET = utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `transfer_transactions`
 (
     `id` bigint(11) NOT NULL,
     `transfer_id` bigint(11) NOT NULL,
