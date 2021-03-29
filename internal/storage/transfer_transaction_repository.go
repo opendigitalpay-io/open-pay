@@ -4,7 +4,7 @@ import (
 	"context"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/opendigitalpay-io/open-pay/internal/domain"
-	"github.com/opendigitalpay-io/open-pay/internal/transfer_transaction"
+	"github.com/opendigitalpay-io/open-pay/internal/transtxn"
 	"time"
 )
 
@@ -30,7 +30,7 @@ func (t *transferTransactionModel) TableName() string {
 	return "transfer_transactions"
 }
 
-func (t *transferTransactionModel) model(txn transfer_transaction.TransferTransaction) error {
+func (t *transferTransactionModel) model(txn transtxn.TransferTransaction) error {
 	t.ID = txn.ID
 	t.TransferID = txn.TransferID
 	t.SourceID = txn.SourceID
@@ -52,14 +52,14 @@ func (t *transferTransactionModel) model(txn transfer_transaction.TransferTransa
 	return nil
 }
 
-func (t *transferTransactionModel) domain() (transfer_transaction.TransferTransaction, error) {
+func (t *transferTransactionModel) domain() (transtxn.TransferTransaction, error) {
 	var metadata map[string]interface{}
 	err := jsoniter.Unmarshal(t.Metadata, &metadata)
 	if err != nil {
-		return transfer_transaction.TransferTransaction{}, err
+		return transtxn.TransferTransaction{}, err
 	}
 
-	return transfer_transaction.TransferTransaction{
+	return transtxn.TransferTransaction{
 		ID:               t.ID,
 		TransferID:       t.TransferID,
 		SourceID:         t.SourceID,
@@ -78,19 +78,19 @@ func (t *transferTransactionModel) domain() (transfer_transaction.TransferTransa
 	}, nil
 }
 
-func (r *Repository) AddTransferTransaction(ctx context.Context, transaction transfer_transaction.TransferTransaction) (transfer_transaction.TransferTransaction, error) {
+func (r *Repository) AddTransferTransaction(ctx context.Context, transaction transtxn.TransferTransaction) (transtxn.TransferTransaction, error) {
 	db := r.DB(ctx)
 
 	id, err := r.uidGenerator.NextID()
 	if err != nil {
-		return transfer_transaction.TransferTransaction{}, wrapDBError(err, "transfer_transaction")
+		return transtxn.TransferTransaction{}, wrapDBError(err, "transfer_transaction")
 	}
 	transaction.ID = id
 
 	var t transferTransactionModel
 	err = t.model(transaction)
 	if err != nil {
-		return transfer_transaction.TransferTransaction{}, wrapDBError(err, "transfer_transaction")
+		return transtxn.TransferTransaction{}, wrapDBError(err, "transfer_transaction")
 	}
 
 	now := time.Now().Unix()
@@ -99,7 +99,7 @@ func (r *Repository) AddTransferTransaction(ctx context.Context, transaction tra
 
 	err = db.Create(&t).Error
 	if err != nil {
-		return transfer_transaction.TransferTransaction{}, wrapDBError(err, "transfer_transaction")
+		return transtxn.TransferTransaction{}, wrapDBError(err, "transfer_transaction")
 	}
 
 	transaction.CreatedAt = t.CreatedAt
@@ -108,20 +108,20 @@ func (r *Repository) AddTransferTransaction(ctx context.Context, transaction tra
 	return transaction, nil
 }
 
-func (r *Repository) UpdateTransferTransaction(ctx context.Context, transaction transfer_transaction.TransferTransaction) (transfer_transaction.TransferTransaction, error) {
+func (r *Repository) UpdateTransferTransaction(ctx context.Context, transaction transtxn.TransferTransaction) (transtxn.TransferTransaction, error) {
 	db := r.DB(ctx)
 
 	var t transferTransactionModel
 	err := t.model(transaction)
 	if err != nil {
-		return transfer_transaction.TransferTransaction{}, wrapDBError(err, "transfer_transaction")
+		return transtxn.TransferTransaction{}, wrapDBError(err, "transtxn")
 	}
 
 	t.UpdatedAt = time.Now().Unix()
 
 	err = db.Model(&t).Updates(&t).Error
 	if err != nil {
-		return transfer_transaction.TransferTransaction{}, wrapDBError(err, "transfer_transaction")
+		return transtxn.TransferTransaction{}, wrapDBError(err, "transtxn")
 	}
 
 	transaction.UpdatedAt = t.UpdatedAt
