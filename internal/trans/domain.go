@@ -1,6 +1,10 @@
 package trans
 
-import "github.com/opendigitalpay-io/open-pay/internal/domain"
+import (
+	"github.com/opendigitalpay-io/open-pay/internal/domain"
+	"github.com/opendigitalpay-io/open-pay/internal/storage"
+	"github.com/opendigitalpay-io/open-pay/internal/tcc"
+)
 
 type Transfer struct {
 	ID            uint64
@@ -14,6 +18,9 @@ type Transfer struct {
 	Metadata      map[string]interface{}
 	CreatedAt     int64
 	UpdatedAt     int64
+	// FIXME: try to split these field out into another struct
+	transferTxns []tcc.Interface
+	repository   storage.Repository
 }
 
 type Type string
@@ -59,4 +66,27 @@ func Create(dto TransferDTO) Transfer {
 		Currency:      dto.Currency,
 		Metadata:      dto.Metadata,
 	}
+}
+
+func (t *Transfer) OnTrySuccessCallback() {
+
+}
+
+func (t *Transfer) OnTryFailCallback() {
+
+}
+
+func (t *Transfer) OnCommitSuccessCallback() {
+
+}
+
+func (t *Transfer) OnCommitFailCallback() {
+
+}
+
+func (t *Transfer) OnCancelSuccessCallback() {
+
+}
+func (t *Transfer) OnCancelFailCallback() {
+
 }
