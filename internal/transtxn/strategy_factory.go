@@ -7,20 +7,20 @@ import (
 	"github.com/opendigitalpay-io/open-pay/internal/trans"
 )
 
-type factory struct {
+type strategyFactory struct {
 	repo Repository
 	//GatewayService
 }
 
-type Factory interface {
-	Create(context.Context, trans.Transfer) (tcc.Interface, error)
+type StrategyFactory interface {
+	Create(context.Context, trans.TransferStrategy) (tcc.Strategy, error)
 }
 
-func NewFactory() Factory {
-	return &factory{}
+func NewStrategyFactory() StrategyFactory {
+	return &strategyFactory{}
 }
 
-func (c *factory) Create(ctx context.Context, transfer trans.Transfer) (tcc.Interface, error) {
+func (c *strategyFactory) Create(ctx context.Context, transfer trans.TransferStrategy) (tcc.Strategy, error) {
 	transTxn := TransferTransaction{
 		TransferID:    transfer.ID,
 		SourceID:      transfer.SourceID,
@@ -34,14 +34,13 @@ func (c *factory) Create(ctx context.Context, transfer trans.Transfer) (tcc.Inte
 
 	transTxn, err := c.repo.AddTransferTransaction(ctx, transTxn)
 	if err != nil {
-		return &CCTransferTransaction{}, err
+		return &CCTransferTransactionStrategy{}, err
 	}
 
 	// FIXME: add if else logic to determine what transfer txn.
-	ccTransferTxn := CCTransferTransaction{
-		transTxn,
-		&transfer,
-		c.repo,
+	ccTransferTxn := CCTransferTransactionStrategy{
+		TransferTransaction: transTxn,
+		transferObserver:    &transfer,
 	}
 
 	return &ccTransferTxn, nil
