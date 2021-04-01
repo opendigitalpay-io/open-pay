@@ -8,7 +8,7 @@ import (
 type TransferStrategy struct {
 	Transfer
 	// FIXME: add transfer service
-	orderObserver tcc.Observer
+	orderObserver         tcc.Observer
 	transferTxnStrategies []tcc.Strategy
 }
 

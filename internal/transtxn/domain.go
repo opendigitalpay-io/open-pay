@@ -17,7 +17,7 @@ type TransferTransaction struct {
 	DestinationID    uint64
 	WalletPID        uint64
 	GatewayRequestID uint64
-	Type             string
+	Type             Type
 	Amount           int64
 	Currency         string
 	Status           domain.STATUS
@@ -26,4 +26,26 @@ type TransferTransaction struct {
 	Metadata         map[string]interface{}
 	CreatedAt        int64
 	UpdatedAt        int64
+}
+
+type Type string
+
+const (
+	WALLET_PAY Type = "WALLET_PAY"
+	CC_DIRECT  Type = "CC_DIRECT"
+)
+
+var types = [...]string{
+	"WALLET_PAY",
+	"CC_DIRECT",
+}
+
+func (t *Type) String() string {
+	x := string(*t)
+	for _, v := range types {
+		if v == x {
+			return x
+		}
+	}
+	return ""
 }

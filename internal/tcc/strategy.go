@@ -7,6 +7,4 @@ type Strategy interface {
 	Commit() error
 	Cancel() error
 	GetStatus() domain.STATUS
-
-
 }

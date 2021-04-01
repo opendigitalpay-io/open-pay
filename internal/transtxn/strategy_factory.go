@@ -13,19 +13,38 @@ type strategyFactory struct {
 }
 
 type StrategyFactory interface {
-	Create(context.Context, trans.TransferStrategy) (tcc.Strategy, error)
+	CreateCCDirectTransferTxnStrategy(context.Context, trans.TransferStrategy) (tcc.Strategy, error)
+	CreateWalletPayTransferTxnStrategy(context.Context, trans.TransferStrategy) (tcc.Strategy, error)
 }
 
 func NewStrategyFactory() StrategyFactory {
 	return &strategyFactory{}
 }
 
-func (c *strategyFactory) Create(ctx context.Context, transfer trans.TransferStrategy) (tcc.Strategy, error) {
+func (c *strategyFactory) CreateCCDirectTransferTxnStrategy(ctx context.Context, transfer trans.TransferStrategy) (tcc.Strategy, error) {
+	strategy, err := c.create(ctx, transfer, CC_DIRECT)
+	if err != nil {
+		return &CCTransferTransactionStrategy{}, err
+	}
+
+	return strategy, nil
+}
+
+func (c *strategyFactory) CreateWalletPayTransferTxnStrategy(ctx context.Context, transfer trans.TransferStrategy) (tcc.Strategy, error) {
+	strategy, err := c.create(ctx, transfer, WALLET_PAY)
+	if err != nil {
+		return &CCTransferTransactionStrategy{}, err
+	}
+
+	return strategy, nil
+}
+
+func (c *strategyFactory) create(ctx context.Context, transfer trans.TransferStrategy, transactionType Type) (tcc.Strategy, error) {
 	transTxn := TransferTransaction{
 		TransferID:    transfer.ID,
 		SourceID:      transfer.SourceID,
 		DestinationID: transfer.DestinationID,
-		Type:          transfer.Type.String(), // FIXME: add logic to determine Type: WALLET_TOPUP, CCDIRECT, CCREFUND
+		Type:          transactionType.String(),
 		Amount:        transfer.Amount,
 		Currency:      transfer.Currency,
 		Status:        domain.CREATED,
