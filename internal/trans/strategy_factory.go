@@ -43,9 +43,9 @@ func (f *strategyFactory) CreateByOrder(ctx context.Context, order domain.Order)
 	transferTxnStrategies = append(transferTxnStrategies, balanceTransferTxnStrategy)
 
 	strategy := Strategy{
-		Transfer: transfer,
+		Transfer:              transfer,
 		transferTxnStrategies: transferTxnStrategies,
-		service:  f.service,
+		service:               f.service,
 	}
 	ccTransferTxnStrategy.AddObserver(&strategy)
 	balanceTransferTxnStrategy.AddObserver(&strategy)
