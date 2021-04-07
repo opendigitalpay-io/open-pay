@@ -1,19 +1,14 @@
 package transtxn
 
 import (
-	"context"
 	"github.com/opendigitalpay-io/open-pay/internal/domain"
 )
-
-type Repository interface {
-	AddTransferTransaction(context.Context, TransferTransaction) (TransferTransaction, error)
-	UpdateTransferTransaction(context.Context, TransferTransaction) (TransferTransaction, error)
-}
 
 type TransferTransaction struct {
 	ID               uint64
 	TransferID       uint64
 	SourceID         uint64
+	CustomerID       uint64
 	DestinationID    uint64
 	WalletPID        uint64
 	GatewayRequestID uint64

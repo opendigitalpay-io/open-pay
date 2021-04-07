@@ -1,6 +1,7 @@
 package transtxn
 
 import (
+	"context"
 	"github.com/opendigitalpay-io/open-pay/internal/domain"
 	"github.com/opendigitalpay-io/open-pay/internal/tcc"
 )
@@ -8,20 +9,20 @@ import (
 type CCTransferTransactionStrategy struct {
 	TransferTransaction
 	transferObserver tcc.Observer
-	// FIXME: add TransferTxnService
+	service          Service
 }
 
-func (c *CCTransferTransactionStrategy) Try() error {
+func (c *CCTransferTransactionStrategy) Try(ctx context.Context) error {
 	//resp: = c.service.callGateway(c)
 	//c.Observer.OnCancelFailCallback()
 	return nil
 }
 
-func (c *CCTransferTransactionStrategy) Commit() error {
+func (c *CCTransferTransactionStrategy) Commit(ctx context.Context) error {
 	return nil
 }
 
-func (c *CCTransferTransactionStrategy) Cancel() error {
+func (c *CCTransferTransactionStrategy) Cancel(ctx context.Context) error {
 	return nil
 }
 
