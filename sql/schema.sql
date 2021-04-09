@@ -79,3 +79,24 @@ CREATE TABLE IF NOT EXISTS `transfer_transactions`
     PRIMARY KEY (`id`)
 )
 DEFAULT CHARSET = utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `card_request`
+(
+    `id`: bigint(11) NOT NULL,
+    `request_id`: bigint(11) NOT NULL COMMENT 'gateway idempotency key',
+    `parent_id`: bigint(11) NOT NULL,
+    `transfer_txn_id`: bigint(11) NOT NULL,
+    `gateway_txn_id`: varchar(255) DEFAULT NULL,
+    `gateway_token`: varchar(255) NOT NULL,
+    `gateway`: varchar(255) NOT NULL,
+    `amount`: bigint(11) NOT NULL,
+    `currency`: varchar(255) NOT NULL,
+    `requst_type`: varchar(255) NOT NULL,
+    `auto_capture`: boolean DEFAULT false,
+    `status`: varchar(255) NOT NULL,
+    `metadata` json DEFAULT NULL,
+    `createdAt`: bigint(11) NOT NULL,
+    `updateAt`: bigint(11) NOT NULL,
+    PRIMARY KEY (`id`)
+)
+DEFAULT CHARSET = utf8mb4;
