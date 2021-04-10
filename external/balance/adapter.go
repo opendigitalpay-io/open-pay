@@ -10,6 +10,10 @@ type Adapter interface {
 	TryTopUp(uint64, TryTopUpRequest) (TryTopUpResponse, error)
 	CommitTopUp(uint64, uint64, map[string]interface{}) error
 	CancelTopUp(uint64, uint64, map[string]interface{}) error
+
+	TryPay(uint64, TryPayRequest) (TryPayResponse, error)
+	CommitPay(uint64, CommitPayRequest) error
+	CancelPay(uint64, CancelPayRequest) error
 }
 
 type adapter struct {
@@ -90,6 +94,62 @@ func (a *adapter) CancelTopUp(idemKey uint64, parentID uint64, metadata map[stri
 		SetBody(req).
 		SetError(errorz.Response{}).
 		Post("/v1/topup/cancel")
+
+	if err != nil {
+		return err
+	}
+
+	if resp.IsError() {
+		return *resp.Error().(*errorz.Response)
+	}
+
+	return nil
+}
+
+func (a *adapter) TryPay(idemKey uint64, request TryPayRequest) (TryPayResponse, error) {
+	resp, err := a.client.R().
+		SetHeader("idemKey", strconv.FormatUint(idemKey, 10)).
+		SetBody(request).
+		SetResult(TryPayResponse{}).
+		SetError(errorz.Response{}).
+		Post("/v1/pay/try")
+
+	if err != nil {
+		println(err)
+		return TryPayResponse{}, err
+	}
+
+	if resp.IsError() {
+		return TryPayResponse{}, *resp.Error().(*errorz.Response)
+	}
+
+	return *resp.Result().(*TryPayResponse), nil
+}
+
+func (a *adapter) CommitPay(idemKey uint64, request CommitPayRequest) error {
+	resp, err := a.client.R().
+		SetHeader("idemKey", strconv.FormatUint(idemKey, 10)).
+		SetBody(request).
+		SetError(errorz.Response{}).
+		Post("/v1/pay/commit")
+
+	if err != nil {
+		return err
+	}
+
+	if resp.IsError() {
+		return *resp.Error().(*errorz.Response)
+	}
+
+	return nil
+}
+
+func (a *adapter) CancelPay(idemKey uint64, request CancelPayRequest) error {
+	resp, err := a.client.R().
+		SetHeader("idemKey", strconv.FormatUint(idemKey, 10)).
+		SetBody(request).
+		SetError(errorz.Response{}).
+		Post("/v1/pay/cancel")
 
 	if err != nil {
 		return err

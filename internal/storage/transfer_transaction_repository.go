@@ -37,7 +37,7 @@ func (t *transferTransactionModel) model(txn transtxn.TransferTransaction) error
 	t.DestinationID = txn.DestinationID
 	t.WalletPID = txn.WalletPID
 	t.GatewayRequestID = txn.GatewayRequestID
-	t.Type = txn.Type
+	t.Type = txn.Type.String()
 	t.Amount = txn.Amount
 	t.Currency = txn.Currency
 	t.Status = txn.Status.String()

@@ -8,40 +8,73 @@ import (
 )
 
 type strategyFactory struct {
-	repo Repository
-	//GatewayService
+	service Service
 }
 
 type StrategyFactory interface {
-	Create(context.Context, trans.TransferStrategy) (tcc.Strategy, error)
+	CreateCCDirectTransferTxnStrategy(context.Context, trans.TransferStrategy) (tcc.Strategy, error)
+	CreateWalletPayTransferTxnStrategy(context.Context, trans.TransferStrategy) (tcc.Strategy, error)
 }
 
-func NewStrategyFactory() StrategyFactory {
-	return &strategyFactory{}
+func NewStrategyFactory(service Service) StrategyFactory {
+	return &strategyFactory{
+		service: service,
+	}
 }
 
-func (c *strategyFactory) Create(ctx context.Context, transfer trans.TransferStrategy) (tcc.Strategy, error) {
+func (c *strategyFactory) CreateCCDirectTransferTxnStrategy(ctx context.Context, transfer trans.TransferStrategy) (tcc.Strategy, error) {
+	strategy, err := c.create(ctx, transfer, CC_DIRECT)
+	if err != nil {
+		return &CCTransferTransactionStrategy{}, err
+	}
+
+	return strategy, nil
+}
+
+func (c *strategyFactory) CreateWalletPayTransferTxnStrategy(ctx context.Context, transfer trans.TransferStrategy) (tcc.Strategy, error) {
+	strategy, err := c.create(ctx, transfer, WALLET_PAY)
+	if err != nil {
+		return &CCTransferTransactionStrategy{}, err
+	}
+
+	return strategy, nil
+}
+
+func (c *strategyFactory) create(ctx context.Context, transfer trans.TransferStrategy, transactionType Type) (tcc.Strategy, error) {
 	transTxn := TransferTransaction{
-		TransferID:    transfer.ID,
-		SourceID:      transfer.SourceID,
+		TransferID: transfer.ID,
+		SourceID:   transfer.SourceID,
+		// FIXME: Add customerId in transfer
+		CustomerID:    transfer.CustomerID,
 		DestinationID: transfer.DestinationID,
-		Type:          transfer.Type.String(), // FIXME: add logic to determine Type: WALLET_TOPUP, CCDIRECT, CCREFUND
+		Type:          transactionType.String(),
 		Amount:        transfer.Amount,
 		Currency:      transfer.Currency,
 		Status:        domain.CREATED,
 		Metadata:      transfer.Metadata,
 	}
 
-	transTxn, err := c.repo.AddTransferTransaction(ctx, transTxn)
+	transTxn, err := c.service.AddTransferTransaction(ctx, transTxn)
 	if err != nil {
 		return &CCTransferTransactionStrategy{}, err
 	}
 
-	// FIXME: add if else logic to determine what transfer txn.
-	ccTransferTxn := CCTransferTransactionStrategy{
-		TransferTransaction: transTxn,
-		transferObserver:    &transfer,
+	var transferTxnStrategy tcc.Strategy
+	switch transactionType {
+	case CC_DIRECT:
+		transferTxnStrategy = &CCTransferTransactionStrategy{
+			TransferTransaction: transTxn,
+			transferObserver:    &transfer,
+			service:             c.service,
+		}
+	case WALLET_PAY:
+	default:
+		transferTxnStrategy = &BalanceTransferTransactionStrategy{
+			TransferTransaction: transTxn,
+			transferObserver:    &transfer,
+			service:             c.service,
+		}
 	}
 
-	return &ccTransferTxn, nil
+	return transferTxnStrategy, nil
 }

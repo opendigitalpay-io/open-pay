@@ -1,12 +1,13 @@
 package tcc
 
-import "github.com/opendigitalpay-io/open-pay/internal/domain"
+import (
+	"context"
+	"github.com/opendigitalpay-io/open-pay/internal/domain"
+)
 
 type Strategy interface {
-	Try() error
-	Commit() error
-	Cancel() error
+	Try(context.Context) error
+	Commit(context.Context) error
+	Cancel(context.Context) error
 	GetStatus() domain.STATUS
-
-
 }
