@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/opendigitalpay-io/open-pay/external/balance"
 	"github.com/opendigitalpay-io/open-pay/internal/common/uid"
-	"github.com/opendigitalpay-io/open-pay/internal/domain"
+	"github.com/opendigitalpay-io/open-pay/internal/tcc"
 )
 
 type Service interface {
@@ -73,7 +73,7 @@ func (s *service) TryWalletPay(ctx context.Context, transferTxn TransferTransact
 	}
 
 	transferTxn.WalletPID = tryPayResp.ID
-	transferTxn.Status = domain.PREPARED
+	transferTxn.Status = tcc.TRY_SUCCEEDED
 	updatedTransferTxn, err := s.repo.UpdateTransferTransaction(ctx, transferTxn)
 	if err != nil {
 		return TransferTransaction{}, err
@@ -97,7 +97,7 @@ func (s *service) CommitWalletPay(ctx context.Context, transferTxn TransferTrans
 		return TransferTransaction{}, err
 	}
 
-	transferTxn.Status = domain.CONFIRMED
+	transferTxn.Status = tcc.COMMIT_SUCCEEDED
 	updatedTransferTxn, err := s.repo.UpdateTransferTransaction(ctx, transferTxn)
 	if err != nil {
 		return TransferTransaction{}, err
@@ -121,7 +121,7 @@ func (s *service) CancelWalletPay(ctx context.Context, transferTxn TransferTrans
 		return TransferTransaction{}, err
 	}
 
-	transferTxn.Status = domain.CANCELLED
+	transferTxn.Status = tcc.CANCEL_SUCCEEDED
 	updatedTransferTxn, err := s.repo.UpdateTransferTransaction(ctx, transferTxn)
 	if err != nil {
 		return TransferTransaction{}, err

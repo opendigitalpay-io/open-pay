@@ -5,6 +5,7 @@ import (
 	"github.com/opendigitalpay-io/open-pay/internal/common/uid"
 	"github.com/opendigitalpay-io/open-pay/internal/domain"
 	"github.com/opendigitalpay-io/open-pay/internal/port/api"
+	"github.com/opendigitalpay-io/open-pay/internal/tcc"
 )
 
 type Service interface {
@@ -42,7 +43,7 @@ func (s *service) AddTopUp(ctx context.Context, userID uint64, req api.AddTopUpR
 			PaymentMethodID: req.PaymentMethodID,
 			Amount:          req.Amount,
 			Currency:        req.Currency,
-			Status:          domain.CREATED,
+			Status:          tcc.CREATED,
 		}
 
 		topUp, err = s.repo.AddTopUp(ctx, topUp)

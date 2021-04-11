@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"github.com/opendigitalpay-io/open-pay/internal/domain"
+	"github.com/opendigitalpay-io/open-pay/internal/tcc"
 	"time"
 )
 import jsoniter "github.com/json-iterator/go"
@@ -60,7 +61,7 @@ func (o *orderModel) domain() (domain.Order, error) {
 		Currency:      o.Currency,
 		ReferenceID:   o.ReferenceID,
 		CustomerEmail: o.CustomerEmail,
-		Status:        domain.STATUS(o.Status),
+		Status:        tcc.STATUS(o.Status),
 		Mode:          domain.OrderMode(o.Mode),
 		Metadata:      metadata,
 		CreatedAt:     o.CreatedAt,

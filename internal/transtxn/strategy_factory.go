@@ -2,7 +2,6 @@ package transtxn
 
 import (
 	"context"
-	"github.com/opendigitalpay-io/open-pay/internal/domain"
 	"github.com/opendigitalpay-io/open-pay/internal/tcc"
 	"github.com/opendigitalpay-io/open-pay/internal/trans"
 )
@@ -12,8 +11,8 @@ type strategyFactory struct {
 }
 
 type StrategyFactory interface {
-	CreateCCDirectTransferTxnStrategy(context.Context, trans.TransferStrategy) (tcc.Strategy, error)
-	CreateWalletPayTransferTxnStrategy(context.Context, trans.TransferStrategy) (tcc.Strategy, error)
+	CreateCCDirectTransferTxnStrategy(context.Context, trans.Transfer) (tcc.Strategy, error)
+	CreateWalletPayTransferTxnStrategy(context.Context, trans.Transfer) (tcc.Strategy, error)
 }
 
 func NewStrategyFactory(service Service) StrategyFactory {
@@ -22,7 +21,7 @@ func NewStrategyFactory(service Service) StrategyFactory {
 	}
 }
 
-func (c *strategyFactory) CreateCCDirectTransferTxnStrategy(ctx context.Context, transfer trans.TransferStrategy) (tcc.Strategy, error) {
+func (c *strategyFactory) CreateCCDirectTransferTxnStrategy(ctx context.Context, transfer trans.Transfer) (tcc.Strategy, error) {
 	strategy, err := c.create(ctx, transfer, CC_DIRECT)
 	if err != nil {
 		return &CCTransferTransactionStrategy{}, err
@@ -31,7 +30,7 @@ func (c *strategyFactory) CreateCCDirectTransferTxnStrategy(ctx context.Context,
 	return strategy, nil
 }
 
-func (c *strategyFactory) CreateWalletPayTransferTxnStrategy(ctx context.Context, transfer trans.TransferStrategy) (tcc.Strategy, error) {
+func (c *strategyFactory) CreateWalletPayTransferTxnStrategy(ctx context.Context, transfer trans.Transfer) (tcc.Strategy, error) {
 	strategy, err := c.create(ctx, transfer, WALLET_PAY)
 	if err != nil {
 		return &CCTransferTransactionStrategy{}, err
@@ -40,17 +39,16 @@ func (c *strategyFactory) CreateWalletPayTransferTxnStrategy(ctx context.Context
 	return strategy, nil
 }
 
-func (c *strategyFactory) create(ctx context.Context, transfer trans.TransferStrategy, transactionType Type) (tcc.Strategy, error) {
+func (c *strategyFactory) create(ctx context.Context, transfer trans.Transfer, transactionType Type) (tcc.Strategy, error) {
 	transTxn := TransferTransaction{
-		TransferID: transfer.ID,
-		SourceID:   transfer.SourceID,
-		// FIXME: Add customerId in transfer
+		TransferID:    transfer.ID,
+		SourceID:      transfer.SourceID,
 		CustomerID:    transfer.CustomerID,
 		DestinationID: transfer.DestinationID,
 		Type:          transactionType.String(),
 		Amount:        transfer.Amount,
 		Currency:      transfer.Currency,
-		Status:        domain.CREATED,
+		Status:        tcc.CREATED,
 		Metadata:      transfer.Metadata,
 	}
 
@@ -64,14 +62,12 @@ func (c *strategyFactory) create(ctx context.Context, transfer trans.TransferStr
 	case CC_DIRECT:
 		transferTxnStrategy = &CCTransferTransactionStrategy{
 			TransferTransaction: transTxn,
-			transferObserver:    &transfer,
 			service:             c.service,
 		}
 	case WALLET_PAY:
 	default:
 		transferTxnStrategy = &BalanceTransferTransactionStrategy{
 			TransferTransaction: transTxn,
-			transferObserver:    &transfer,
 			service:             c.service,
 		}
 	}

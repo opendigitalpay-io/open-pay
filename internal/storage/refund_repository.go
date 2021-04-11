@@ -4,6 +4,7 @@ import (
 	"context"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/opendigitalpay-io/open-pay/internal/domain"
+	"github.com/opendigitalpay-io/open-pay/internal/tcc"
 	"time"
 )
 
@@ -48,7 +49,7 @@ func (r *refundModel) domain() (domain.Refund, error) {
 		ID:          r.ID,
 		OrderID:     r.OrderID,
 		Amount:      r.Amount,
-		Status:      domain.STATUS(r.Status),
+		Status:      tcc.STATUS(r.Status),
 		RefundCount: r.RefundCount,
 		Metadata:    metadata,
 		CreatedAt:   r.CreatedAt,

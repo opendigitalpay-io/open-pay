@@ -2,55 +2,116 @@ package trans
 
 import (
 	"context"
-	"github.com/opendigitalpay-io/open-pay/internal/domain"
 	"github.com/opendigitalpay-io/open-pay/internal/tcc"
 )
 
-type TransferStrategy struct {
+type Strategy struct {
 	Transfer
-	// FIXME: add transfer service
 	orderObserver         tcc.Observer
 	transferTxnStrategies []tcc.Strategy
+	service               Service
 }
 
-func (c *TransferStrategy) Try() error {
-	//resp: = c.service.callGateway(c)
-	//c.Observer.OnCancelFailCallback()
+func (s *Strategy) GetStatus() tcc.STATUS {
+	return s.Status
+}
+
+func (s *Strategy) AddObserver(observer tcc.Observer) {
+	s.orderObserver = observer
+}
+
+func (s *Strategy) Try(ctx context.Context) error {
+	s.Status = tcc.TRY_STARTED
+	_, err := s.service.UpdateTransfer(ctx, s.Transfer)
+	if err != nil {
+		return err
+	}
+	for _, transferTxnStrategy := range s.transferTxnStrategies {
+		err = transferTxnStrategy.Try(ctx)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
-func (c *TransferStrategy) Commit() error {
+func (s *Strategy) Commit(ctx context.Context) error {
+	s.Status = tcc.COMMIT_STARTED
+	_, err := s.service.UpdateTransfer(ctx, s.Transfer)
+	if err != nil {
+		return err
+	}
+	for _, transferTxnStrategy := range s.transferTxnStrategies {
+		err = transferTxnStrategy.Commit(ctx)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
-func (c *TransferStrategy) Cancel() error {
+func (s *Strategy) Cancel(ctx context.Context) error {
+	s.Status = tcc.CANCEL_STARTED
+	_, err := s.service.UpdateTransfer(ctx, s.Transfer)
+	if err != nil {
+		return err
+	}
+	for _, transferTxnStrategy := range s.transferTxnStrategies {
+		err = transferTxnStrategy.Cancel(ctx)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
-func (c *TransferStrategy) GetStatus() domain.STATUS {
-	return c.Status
+func (s *Strategy) OnTrySuccessCallback(ctx context.Context) {
+	if s.allTransferTxnStrategiesMatch(tcc.TRY_SUCCEEDED) {
+		s.Status = tcc.TRY_SUCCEEDED
+		s.service.UpdateTransfer(ctx, s.Transfer)
+		s.orderObserver.OnTrySuccessCallback(ctx)
+	}
 }
 
-func (c *TransferStrategy) OnTrySuccessCallback(ctx context.Context) {
-
+func (s *Strategy) OnTryFailCallback(ctx context.Context) {
+	s.Status = tcc.TRY_FAILED
+	s.service.UpdateTransfer(ctx, s.Transfer)
+	s.orderObserver.OnTryFailCallback(ctx)
 }
 
-func (c *TransferStrategy) OnTryFailCallback(ctx context.Context) {
-
+func (s *Strategy) OnCommitSuccessCallback(ctx context.Context) {
+	if s.allTransferTxnStrategiesMatch(tcc.COMMIT_SUCCEEDED) {
+		s.Status = tcc.COMMIT_SUCCEEDED
+		s.service.UpdateTransfer(ctx, s.Transfer)
+		s.orderObserver.OnCommitSuccessCallback(ctx)
+	}
 }
 
-func (c *TransferStrategy) OnCommitSuccessCallback(ctx context.Context) {
-
+func (s *Strategy) OnCommitFailCallback(ctx context.Context) {
+	s.Status = tcc.COMMIT_FAILED
+	s.service.UpdateTransfer(ctx, s.Transfer)
+	s.orderObserver.OnCommitFailCallback(ctx)
 }
 
-func (c *TransferStrategy) OnCommitFailCallback(ctx context.Context) {
-
+func (s *Strategy) OnCancelSuccessCallback(ctx context.Context) {
+	if s.allTransferTxnStrategiesMatch(tcc.CANCEL_SUCCEEDED) {
+		s.Status = tcc.CANCEL_SUCCEEDED
+		s.service.UpdateTransfer(ctx, s.Transfer)
+		s.orderObserver.OnCancelSuccessCallback(ctx)
+	}
 }
 
-func (c *TransferStrategy) OnCancelSuccessCallback(ctx context.Context) {
-
+func (s *Strategy) OnCancelFailCallback(ctx context.Context) {
+	s.Status = tcc.CANCEL_FAILED
+	s.service.UpdateTransfer(ctx, s.Transfer)
+	s.orderObserver.OnCancelFailCallback(ctx)
 }
 
-func (c *TransferStrategy) OnCancelFailCallback(ctx context.Context) {
-
+func (s *Strategy) allTransferTxnStrategiesMatch(status tcc.STATUS) bool {
+	for _, transferTxnStrategy := range s.transferTxnStrategies {
+		if transferTxnStrategy.GetStatus() != status {
+			return false
+		}
+	}
+	return true
 }
