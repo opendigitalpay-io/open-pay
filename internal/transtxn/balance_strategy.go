@@ -2,7 +2,6 @@ package transtxn
 
 import (
 	"context"
-	"github.com/opendigitalpay-io/open-pay/internal/domain"
 	"github.com/opendigitalpay-io/open-pay/internal/tcc"
 )
 
@@ -10,6 +9,14 @@ type BalanceTransferTransactionStrategy struct {
 	TransferTransaction
 	transferObserver tcc.Observer
 	service          Service
+}
+
+func (c *BalanceTransferTransactionStrategy) GetStatus() tcc.STATUS {
+	return c.Status
+}
+
+func (c *BalanceTransferTransactionStrategy) AddObserver(observer tcc.Observer) {
+	c.transferObserver = observer
 }
 
 func (c *BalanceTransferTransactionStrategy) Try(ctx context.Context) error {
@@ -43,8 +50,4 @@ func (c *BalanceTransferTransactionStrategy) Cancel(ctx context.Context) error {
 
 	c.transferObserver.OnCancelSuccessCallback(ctx)
 	return nil
-}
-
-func (c *BalanceTransferTransactionStrategy) GetStatus() domain.STATUS {
-	return c.Status
 }

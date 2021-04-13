@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/opendigitalpay-io/open-pay/internal/common/uid"
 	"github.com/opendigitalpay-io/open-pay/internal/domain"
+	"github.com/opendigitalpay-io/open-pay/internal/tcc"
 )
 
 type Service interface {
@@ -47,7 +48,7 @@ func (s *service) AddRefund(ctx context.Context, orderID uint64) (domain.Refund,
 			ID:          refundID,
 			OrderID:     order.ID,
 			Amount:      order.Amount,
-			Status:      domain.CREATED,
+			Status:      tcc.CREATED,
 			RefundCount: 0,
 		}
 

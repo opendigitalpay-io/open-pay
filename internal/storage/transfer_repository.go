@@ -3,7 +3,7 @@ package storage
 import (
 	"context"
 	jsoniter "github.com/json-iterator/go"
-	"github.com/opendigitalpay-io/open-pay/internal/domain"
+	"github.com/opendigitalpay-io/open-pay/internal/tcc"
 	"github.com/opendigitalpay-io/open-pay/internal/trans"
 	"time"
 )
@@ -54,7 +54,7 @@ func (t *transferModel) domain() (trans.Transfer, error) {
 		Type:      trans.Type(t.Type),
 		Amount:    t.Amount,
 		Currency:  t.Currency,
-		Status:    domain.STATUS(t.Status),
+		Status:    tcc.STATUS(t.Status),
 		Metadata:  metadata,
 		CreatedAt: t.CreatedAt,
 		UpdatedAt: t.UpdatedAt,

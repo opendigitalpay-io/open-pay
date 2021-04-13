@@ -5,16 +5,19 @@ import (
 	"github.com/opendigitalpay-io/open-pay/internal/common/uid"
 	"github.com/opendigitalpay-io/open-pay/internal/domain"
 	"github.com/opendigitalpay-io/open-pay/internal/port/api"
+	"github.com/opendigitalpay-io/open-pay/internal/tcc"
 )
 
 type Service interface {
 	AddOrder(context.Context, api.AddOrderRequest) (domain.Order, error)
 	GetOrder(context.Context, uint64) (domain.Order, error)
+	UpdateOrder(context.Context, domain.Order) (domain.Order, error)
 }
 
 type Repository interface {
 	AddOrder(context.Context, domain.Order) (domain.Order, error)
 	GetOrder(context.Context, uint64) (domain.Order, error)
+	UpdateOrder(context.Context, domain.Order) (domain.Order, error)
 }
 
 type service struct {
@@ -46,7 +49,7 @@ func (s *service) AddOrder(ctx context.Context, request api.AddOrderRequest) (do
 		Currency:      request.Currency,
 		ReferenceID:   request.ReferenceID,
 		CustomerEmail: request.CustomerEmail,
-		Status:        domain.CREATED,
+		Status:        tcc.CREATED,
 		Mode:          domain.INDIRECT,
 		Metadata:      metadata,
 	}
@@ -61,4 +64,8 @@ func (s *service) AddOrder(ctx context.Context, request api.AddOrderRequest) (do
 
 func (s *service) GetOrder(ctx context.Context, orderID uint64) (domain.Order, error) {
 	return s.repo.GetOrder(ctx, orderID)
+}
+
+func (s *service) UpdateOrder(ctx context.Context, order domain.Order) (domain.Order, error) {
+	return s.repo.UpdateOrder(ctx, order)
 }

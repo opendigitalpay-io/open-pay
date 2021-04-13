@@ -1,7 +1,7 @@
 package transtxn
 
 import (
-	"github.com/opendigitalpay-io/open-pay/internal/domain"
+	"github.com/opendigitalpay-io/open-pay/internal/tcc"
 )
 
 type TransferTransaction struct {
@@ -15,7 +15,7 @@ type TransferTransaction struct {
 	Type             Type
 	Amount           int64
 	Currency         string
-	Status           domain.STATUS
+	Status           tcc.STATUS
 	ErrorCode        string
 	ErrorMsg         string
 	Metadata         map[string]interface{}

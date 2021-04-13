@@ -1,5 +1,7 @@
 package domain
 
+import "github.com/opendigitalpay-io/open-pay/internal/tcc"
+
 type OrderMode string
 
 const (
@@ -30,7 +32,7 @@ type Order struct {
 	Currency      string
 	ReferenceID   string
 	CustomerEmail string
-	Status        STATUS
+	Status        tcc.STATUS
 	Mode          OrderMode
 	Metadata      map[string]interface{}
 	CreatedAt     int64
