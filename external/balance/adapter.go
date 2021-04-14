@@ -11,6 +11,7 @@ type Adapter interface {
 	CommitTopUp(uint64, uint64, map[string]interface{}) error
 	CancelTopUp(uint64, uint64, map[string]interface{}) error
 
+	TryExternalPay(uint64, TryPayRequest) (TryPayResponse, error)
 	TryPay(uint64, TryPayRequest) (TryPayResponse, error)
 	CommitPay(uint64, CommitPayRequest) error
 	CancelPay(uint64, CancelPayRequest) error
@@ -104,6 +105,26 @@ func (a *adapter) CancelTopUp(idemKey uint64, parentID uint64, metadata map[stri
 	}
 
 	return nil
+}
+
+func (a *adapter) TryExternalPay(idemKey uint64, request TryPayRequest) (TryPayResponse, error) {
+	resp, err := a.client.R().
+		SetHeader("idemKey", strconv.FormatUint(idemKey, 10)).
+		SetBody(request).
+		SetResult(TryPayResponse{}).
+		SetError(errorz.Response{}).
+		Post("/v1/pay/tryExternal")
+
+	if err != nil {
+		println(err)
+		return TryPayResponse{}, err
+	}
+
+	if resp.IsError() {
+		return TryPayResponse{}, *resp.Error().(*errorz.Response)
+	}
+
+	return *resp.Result().(*TryPayResponse), nil
 }
 
 func (a *adapter) TryPay(idemKey uint64, request TryPayRequest) (TryPayResponse, error) {

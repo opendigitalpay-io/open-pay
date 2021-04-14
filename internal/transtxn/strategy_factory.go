@@ -12,7 +12,8 @@ type strategyFactory struct {
 
 type StrategyFactory interface {
 	CreateCCDirectTransferTxnStrategy(context.Context, trans.Transfer) (tcc.Strategy, error)
-	CreateWalletPayTransferTxnStrategy(context.Context, trans.Transfer) (tcc.Strategy, error)
+	CreateBalancePayTransferTxnStrategy(context.Context, trans.Transfer) (tcc.Strategy, error)
+	CreateBalanceExternalPayTransferTxnStrategy(context.Context, trans.Transfer) (tcc.Strategy, error)
 }
 
 func NewStrategyFactory(service Service) StrategyFactory {
@@ -30,10 +31,19 @@ func (c *strategyFactory) CreateCCDirectTransferTxnStrategy(ctx context.Context,
 	return strategy, nil
 }
 
-func (c *strategyFactory) CreateWalletPayTransferTxnStrategy(ctx context.Context, transfer trans.Transfer) (tcc.Strategy, error) {
+func (c *strategyFactory) CreateBalancePayTransferTxnStrategy(ctx context.Context, transfer trans.Transfer) (tcc.Strategy, error) {
 	strategy, err := c.create(ctx, transfer, WALLET_PAY)
 	if err != nil {
-		return &CCTransferTransactionStrategy{}, err
+		return &BalanceTransferTransactionStrategy{}, err
+	}
+
+	return strategy, nil
+}
+
+func (c *strategyFactory) CreateBalanceExternalPayTransferTxnStrategy(ctx context.Context, transfer trans.Transfer) (tcc.Strategy, error) {
+	strategy, err := c.create(ctx, transfer, WALLET_PAY_EXTERNAL)
+	if err != nil {
+		return &BalanceTransferTransactionStrategy{}, err
 	}
 
 	return strategy, nil
@@ -65,6 +75,7 @@ func (c *strategyFactory) create(ctx context.Context, transfer trans.Transfer, t
 			service:             c.service,
 		}
 	case WALLET_PAY:
+	case WALLET_PAY_EXTERNAL:
 	default:
 		transferTxnStrategy = &BalanceTransferTransactionStrategy{
 			TransferTransaction: transTxn,

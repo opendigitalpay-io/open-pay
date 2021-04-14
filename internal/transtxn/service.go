@@ -67,7 +67,15 @@ func (s *service) TryWalletPay(ctx context.Context, transferTxn TransferTransact
 		return TransferTransaction{}, err
 	}
 
-	tryPayResp, err := s.balanceAdapter.TryPay(idemKey, req)
+	var tryPayResp balance.TryPayResponse
+	switch transferTxn.Type {
+	case WALLET_PAY_EXTERNAL:
+		tryPayResp, err = s.balanceAdapter.TryExternalPay(idemKey, req)
+	case WALLET_PAY:
+	default:
+		tryPayResp, err = s.balanceAdapter.TryPay(idemKey, req)
+	}
+
 	if err != nil {
 		return TransferTransaction{}, err
 	}
