@@ -26,12 +26,14 @@ type TransferTransaction struct {
 type Type string
 
 const (
-	WALLET_PAY Type = "WALLET_PAY"
-	CC_DIRECT  Type = "CC_DIRECT"
+	WALLET_PAY          Type = "WALLET_PAY"
+	WALLET_PAY_EXTERNAL Type = "WALLET_PAY_EXTERNAL"
+	CC_DIRECT           Type = "CC_DIRECT"
 )
 
 var types = [...]string{
 	"WALLET_PAY",
+	"WALLET_PAY_EXTERNAL",
 	"CC_DIRECT",
 }
 

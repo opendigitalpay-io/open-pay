@@ -33,7 +33,7 @@ func (f *strategyFactory) CreateByOrder(ctx context.Context, order domain.Order)
 	if err != nil {
 		return &Strategy{}, err
 	}
-	balanceTransferTxnStrategy, err := f.transferTxnStrategyFactory.CreateWalletPayTransferTxnStrategy(ctx, transfer)
+	balanceTransferTxnStrategy, err := f.transferTxnStrategyFactory.CreateBalanceExternalPayTransferTxnStrategy(ctx, transfer)
 	if err != nil {
 		return &Strategy{}, err
 	}
