@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS `transfer_transactions`
 (
     `id` bigint(11) NOT NULL,
     `transfer_id` bigint(11) NOT NULL,
-    `source_id` bigint(11) NOT NULL,
+    `source_id` varchar (255) NOT NULL,
     `destination_id` bigint(11) NOT NULL,
     `wallet_pid` bigint(11) DEFAULT NULL,
     `gateway_request_id` bigint(11) DEFAULT NULL,

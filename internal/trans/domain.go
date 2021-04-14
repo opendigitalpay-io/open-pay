@@ -8,7 +8,7 @@ type Transfer struct {
 	ID            uint64
 	OrderID       uint64
 	CustomerID    uint64
-	SourceID      uint64
+	SourceID      string
 	DestinationID uint64
 	Type          Type
 	Amount        int64

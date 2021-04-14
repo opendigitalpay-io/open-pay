@@ -65,3 +65,30 @@ func (h *HTTPServer) GetOrder() func(ctx *gin.Context) {
 		h.RespondWithOK(ctx, resp)
 	}
 }
+
+func (h *HTTPServer) PayOrder() func(ctx *gin.Context) {
+	return func(ctx *gin.Context) {
+		var uriParam api.PayOrderURIParameter
+		err := ctx.ShouldBindUri(&uriParam)
+		if err != nil {
+			h.RespondWithError(ctx, err)
+			return
+		}
+
+		var req api.PayOrderRequest
+
+		err = ctx.ShouldBindJSON(&req)
+		if err != nil {
+			h.RespondWithError(ctx, err)
+			return
+		}
+
+		err = h.orderPayService.PayOrder(ctx, uriParam.ID, req)
+		if err != nil {
+			h.RespondWithError(ctx, err)
+			return
+		}
+
+		h.RespondWithOK(ctx, nil)
+	}
+}

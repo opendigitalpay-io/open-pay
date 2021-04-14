@@ -11,7 +11,7 @@ import (
 type transferTransactionModel struct {
 	ID               uint64 `gorm:"primary_key"`
 	TransferID       uint64
-	SourceID         uint64
+	SourceID         string
 	DestinationID    uint64
 	WalletPID        uint64
 	GatewayRequestID uint64

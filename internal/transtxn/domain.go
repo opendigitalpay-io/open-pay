@@ -7,7 +7,7 @@ import (
 type TransferTransaction struct {
 	ID               uint64
 	TransferID       uint64
-	SourceID         uint64
+	SourceID         string
 	CustomerID       uint64
 	DestinationID    uint64
 	WalletPID        uint64

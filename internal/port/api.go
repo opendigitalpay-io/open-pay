@@ -13,6 +13,8 @@ type ServerInterface interface {
 	GetOrder() func(*gin.Context)
 	// POST /v1/order/
 	AddOrder() func(*gin.Context)
+	// POST /v1/order/:id/pay
+	PayOrder() func(*gin.Context)
 	// POST /v1/order/:id/refund
 	AddRefund() func(*gin.Context)
 
@@ -31,6 +33,7 @@ func HandlerFromMux(si ServerInterface, e *gin.Engine) http.Handler {
 		{
 			o.GET("/:id", si.AddOrder())
 			o.POST("", si.AddOrder())
+			o.POST("/:id/pay", si.PayOrder())
 			o.POST("/:id/refund", si.AddRefund())
 		}
 
