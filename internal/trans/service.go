@@ -35,15 +35,15 @@ func (s *service) AddTransfer(ctx context.Context, order domain.Order) (Transfer
 		return Transfer{}, err
 	}
 	transfer := Transfer{
-		ID: transferID,
-		OrderID: order.ID,
-		CustomerID: order.CustomerID,
-		SourceID: order.CustomerID, // FIXME: this should be the token from pay request
+		ID:            transferID,
+		OrderID:       order.ID,
+		CustomerID:    order.CustomerID,
+		SourceID:      order.CustomerID, // FIXME: this should be the token from pay request
 		DestinationID: order.MerchantID,
-		Type: ORDER,
-		Amount: order.Amount,
-		Currency: order.Currency,
-		Status: tcc.CREATED,
+		Type:          ORDER,
+		Amount:        order.Amount,
+		Currency:      order.Currency,
+		Status:        tcc.CREATED,
 	}
 
 	return s.repo.AddTransfer(ctx, transfer)
