@@ -1,9 +1,13 @@
 package order
 
-import "context"
+import (
+	"context"
+	"github.com/opendigitalpay-io/open-pay/internal/domain"
+	"github.com/opendigitalpay-io/open-pay/internal/port/api"
+)
 
 type PayService interface {
-	PayOrder(context.Context, uint64) error
+	PayOrder(context.Context, uint64, api.PayOrderRequest) error
 }
 
 type payService struct {
@@ -16,18 +20,22 @@ func NewPayService(strategyFactory StrategyFactory) PayService {
 	}
 }
 
-// FIXME: add pay-order request dto and response
-func (s *payService) PayOrder(ctx context.Context, orderID uint64) error {
-	strategy, err := s.strategyFactory.Create(ctx, orderID)
+func (s *payService) PayOrder(ctx context.Context, orderID uint64, request api.PayOrderRequest) error {
+	paymentSource := domain.PaymentSource{
+		Type: domain.PaymentSourceType(request.PaymentSource.Type),
+		ID:   request.PaymentSource.ID,
+	}
+
+	orderStrategy, err := s.strategyFactory.Create(ctx, orderID, paymentSource)
 	if err != nil {
 		return err
 	}
 
-	tryErr := strategy.Try(ctx)
+	tryErr := orderStrategy.Try(ctx)
 	if tryErr != nil {
-		strategy.Cancel(ctx)
+		orderStrategy.Cancel(ctx)
 		return tryErr
 	}
 
-	return strategy.Commit(ctx)
+	return orderStrategy.Commit(ctx)
 }

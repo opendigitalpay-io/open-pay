@@ -15,16 +15,18 @@ import (
 )
 
 type HTTPServer struct {
-	orderService  order.Service
-	topUpService  topup.Service
-	refundService refund.Service
+	orderService    order.Service
+	orderPayService order.PayService
+	topUpService    topup.Service
+	refundService   refund.Service
 }
 
-func NewHTTPServer(orderService order.Service, topUpService topup.Service, refundService refund.Service) *HTTPServer {
+func NewHTTPServer(orderService order.Service, orderPayService order.PayService, topUpService topup.Service, refundService refund.Service) *HTTPServer {
 	return &HTTPServer{
-		orderService:  orderService,
-		topUpService:  topUpService,
-		refundService: refundService,
+		orderService:    orderService,
+		orderPayService: orderPayService,
+		topUpService:    topUpService,
+		refundService:   refundService,
 	}
 }
 

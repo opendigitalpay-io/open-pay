@@ -8,7 +8,7 @@ import (
 )
 
 type Service interface {
-	AddTransfer(context.Context, domain.Order) (Transfer, error)
+	AddTransfer(context.Context, domain.Order, domain.PaymentSource) (Transfer, error)
 	UpdateTransfer(context.Context, Transfer) (Transfer, error)
 }
 
@@ -29,7 +29,7 @@ func NewService(repo Repository, uidGenerator uid.Generator) Service {
 	}
 }
 
-func (s *service) AddTransfer(ctx context.Context, order domain.Order) (Transfer, error) {
+func (s *service) AddTransfer(ctx context.Context, order domain.Order, paymentSource domain.PaymentSource) (Transfer, error) {
 	transferID, err := s.uidGenerator.NextID()
 	if err != nil {
 		return Transfer{}, err
@@ -38,7 +38,7 @@ func (s *service) AddTransfer(ctx context.Context, order domain.Order) (Transfer
 		ID:            transferID,
 		OrderID:       order.ID,
 		CustomerID:    order.CustomerID,
-		SourceID:      order.CustomerID, // FIXME: this should be the token from pay request
+		SourceID:      paymentSource.ID,
 		DestinationID: order.MerchantID,
 		Type:          ORDER,
 		Amount:        order.Amount,

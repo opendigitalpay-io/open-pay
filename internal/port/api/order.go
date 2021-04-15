@@ -42,3 +42,16 @@ type BasePriceMoney struct {
 type AddOrderResponse struct {
 	OrderID uint64 `json:"id"`
 }
+
+type PayOrderURIParameter struct {
+	ID uint64 `uri:"id" binding:"required"`
+}
+
+type PayOrderRequest struct {
+	PaymentSource PaymentSource `json:"paymentSource" binding:"required"`
+}
+
+type PaymentSource struct {
+	Type string `json:"type" binding:"required"` // FIXME: add enum validation
+	ID   string `json:"id" binding:"required"`
+}

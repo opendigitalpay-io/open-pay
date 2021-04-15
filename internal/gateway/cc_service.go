@@ -48,7 +48,6 @@ func (s *service) CreateCardRequest(ctx context.Context, transferTxn transtxn.Tr
 	cardRequest := CardRequest{
 		ID:            id,
 		TransferTxnID: transferTxn.ID,
-		// FIXME: change sourceID type in another PR for transfer transaction implementation
 		GatewayToken: transferTxn.SourceID,
 		// FIXME: better design for supporting multi-gateway
 		Gateway:     STRIPE,
