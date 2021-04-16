@@ -17,3 +17,13 @@ type CardRequest struct {
 	CreatedAt     int64
 	UpdatedAt     int64
 }
+
+type CardRequestDTO struct {
+	ID           uint64
+	GatewayToken string
+	Amount       int64
+	Currency     string
+	RequestType  REQUEST_TYPE
+	AutoCapture  bool
+	Metadata     map[string]interface{}
+}

@@ -23,7 +23,7 @@ type adapter struct {
 
 func NewAdapter() Adapter {
 	client := resty.New()
-	client.SetHostURL("http://127.0.0.1:8180")
+	client.SetHostURL("http://127.0.0.1:8080")
 	client.SetHeader("Content-Type", "application/json")
 	client.OnAfterResponse(func(client *resty.Client, response *resty.Response) error {
 		return nil

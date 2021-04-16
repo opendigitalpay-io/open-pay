@@ -7,8 +7,8 @@ import (
 
 type BalanceTransferTransactionStrategy struct {
 	TransferTransaction
-	transferObserver tcc.Observer
-	service          Service
+	TransferObserver tcc.Observer
+	Service          Service
 }
 
 func (c *BalanceTransferTransactionStrategy) GetStatus() tcc.STATUS {
@@ -16,38 +16,69 @@ func (c *BalanceTransferTransactionStrategy) GetStatus() tcc.STATUS {
 }
 
 func (c *BalanceTransferTransactionStrategy) AddObserver(observer tcc.Observer) {
-	c.transferObserver = observer
+	c.TransferObserver = observer
 }
 
 func (c *BalanceTransferTransactionStrategy) Try(ctx context.Context) error {
-	_, err := c.service.TryWalletPay(ctx, c.TransferTransaction)
+	c.Status = tcc.TRY_STARTED
+	c.Service.UpdateTransferTransaction(ctx, c.TransferTransaction)
+
+	transferTransaction, err := c.Service.TryWalletPay(ctx, c.TransferTransaction)
 	if err != nil {
-		c.transferObserver.OnTryFailCallback(ctx)
+		c.Status = tcc.TRY_FAILED
+		c.Service.UpdateTransferTransaction(ctx, c.TransferTransaction)
+
+		c.TransferObserver.OnTryFailCallback(ctx)
 		return err
 	}
 
-	c.transferObserver.OnTrySuccessCallback(ctx)
+	// FIXME: move back to line 27
+	c.TransferTransaction = transferTransaction
+	c.Status = tcc.TRY_SUCCEEDED
+	c.Service.UpdateTransferTransaction(ctx, c.TransferTransaction)
+
+	c.TransferObserver.OnTrySuccessCallback(ctx)
 	return nil
 }
 
 func (c *BalanceTransferTransactionStrategy) Commit(ctx context.Context) error {
-	_, err := c.service.CommitWalletPay(ctx, c.TransferTransaction)
+	c.Status = tcc.COMMIT_STARTED
+	c.Service.UpdateTransferTransaction(ctx, c.TransferTransaction)
+
+	transferTransaction, err := c.Service.CommitWalletPay(ctx, c.TransferTransaction)
 	if err != nil {
-		c.transferObserver.OnCommitFailCallback(ctx)
+		c.Status = tcc.COMMIT_FAILED
+		c.Service.UpdateTransferTransaction(ctx, c.TransferTransaction)
+
+		c.TransferObserver.OnCommitFailCallback(ctx)
 		return err
 	}
 
-	c.transferObserver.OnCommitSuccessCallback(ctx)
+	c.TransferTransaction = transferTransaction
+	c.Status = tcc.COMMIT_SUCCEEDED
+	c.Service.UpdateTransferTransaction(ctx, c.TransferTransaction)
+
+	c.TransferObserver.OnCommitSuccessCallback(ctx)
 	return nil
 }
 
 func (c *BalanceTransferTransactionStrategy) Cancel(ctx context.Context) error {
-	_, err := c.service.CancelWalletPay(ctx, c.TransferTransaction)
+	c.Status = tcc.CANCEL_STARTED
+	c.Service.UpdateTransferTransaction(ctx, c.TransferTransaction)
+
+	transferTransaction, err := c.Service.CancelWalletPay(ctx, c.TransferTransaction)
 	if err != nil {
-		c.transferObserver.OnCancelFailCallback(ctx)
+		c.Status = tcc.CANCEL_FAILED
+		c.Service.UpdateTransferTransaction(ctx, c.TransferTransaction)
+
+		c.TransferObserver.OnCancelFailCallback(ctx)
 		return err
 	}
 
-	c.transferObserver.OnCancelSuccessCallback(ctx)
+	c.TransferTransaction = transferTransaction
+	c.Status = tcc.CANCEL_SUCCEEDED
+	c.Service.UpdateTransferTransaction(ctx, c.TransferTransaction)
+
+	c.TransferObserver.OnCancelSuccessCallback(ctx)
 	return nil
 }

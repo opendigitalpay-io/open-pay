@@ -1,32 +1,32 @@
-package trans
+package factory
 
 import (
 	"context"
 	"github.com/opendigitalpay-io/open-pay/internal/domain"
 	"github.com/opendigitalpay-io/open-pay/internal/tcc"
-	"github.com/opendigitalpay-io/open-pay/internal/transtxn"
+	"github.com/opendigitalpay-io/open-pay/internal/trans"
 )
 
-type StrategyFactory interface {
+type TransferStrategyFactory interface {
 	Create(context.Context, domain.Order, domain.PaymentSource) (tcc.Strategy, error)
 }
 
-type strategyFactory struct {
-	service                    Service
-	transferTxnStrategyFactory transtxn.StrategyFactory
+type transferStrategyFactory struct {
+	service                    trans.Service
+	transferTxnStrategyFactory TransferTxnStrategyFactory
 }
 
-func NewStrategyFactory(service Service, transferTxnStrategyFactory transtxn.StrategyFactory) StrategyFactory {
-	return &strategyFactory{
+func NewTransferStrategyFactory(service trans.Service, transferTxnStrategyFactory TransferTxnStrategyFactory) TransferStrategyFactory {
+	return &transferStrategyFactory{
 		service:                    service,
 		transferTxnStrategyFactory: transferTxnStrategyFactory,
 	}
 }
 
-func (f *strategyFactory) Create(ctx context.Context, order domain.Order, paymentSource domain.PaymentSource) (tcc.Strategy, error) {
+func (f *transferStrategyFactory) Create(ctx context.Context, order domain.Order, paymentSource domain.PaymentSource) (tcc.Strategy, error) {
 	transfer, err := f.service.AddTransfer(ctx, order, paymentSource)
 	if err != nil {
-		return &Strategy{}, err
+		return &trans.Strategy{}, err
 	}
 
 	var transferTxnStrategies []tcc.Strategy
@@ -34,27 +34,27 @@ func (f *strategyFactory) Create(ctx context.Context, order domain.Order, paymen
 	case domain.TOKEN:
 		ccTransferTxnStrategy, err := f.transferTxnStrategyFactory.CreateCCDirectTransferTxnStrategy(ctx, transfer)
 		if err != nil {
-			return &Strategy{}, err
+			return &trans.Strategy{}, err
 		}
 		balanceTransferTxnStrategy, err := f.transferTxnStrategyFactory.CreateBalanceExternalPayTransferTxnStrategy(ctx, transfer)
 		if err != nil {
-			return &Strategy{}, err
+			return &trans.Strategy{}, err
 		}
 		transferTxnStrategies = append(transferTxnStrategies, ccTransferTxnStrategy)
 		transferTxnStrategies = append(transferTxnStrategies, balanceTransferTxnStrategy)
 	case domain.BALANCE_ACCOUNT:
 		balanceTransferTxnStrategy, err := f.transferTxnStrategyFactory.CreateBalancePayTransferTxnStrategy(ctx, transfer)
 		if err != nil {
-			return &Strategy{}, err
+			return &trans.Strategy{}, err
 		}
 		transferTxnStrategies = append(transferTxnStrategies, balanceTransferTxnStrategy)
 	// FIXME: add INTERACT & PAYMENT_METHOD
 	}
 
-	strategy := Strategy{
+	strategy := trans.Strategy{
 		Transfer:              transfer,
-		transferTxnStrategies: transferTxnStrategies,
-		service:               f.service,
+		TransferTxnStrategies: transferTxnStrategies,
+		Service:               f.service,
 	}
 	for _, transferTxnStrategy := range transferTxnStrategies {
 		transferTxnStrategy.AddObserver(&strategy)

@@ -4,11 +4,12 @@ import (
 	"context"
 	"github.com/opendigitalpay-io/open-pay/external/stripe"
 	"github.com/opendigitalpay-io/open-pay/internal/common/uid"
-	"github.com/opendigitalpay-io/open-pay/internal/transtxn"
+	//"github.com/opendigitalpay-io/open-pay/internal/transtxn"
 	"strconv"
 )
 
 type Service interface {
+	CreateCardRequest(context.Context, CardRequestDTO) (CardRequest, error)
 	Authorize(context.Context, CardRequest) (CardRequest, error)
 	Capture(context.Context, CardRequest) (CardRequest, error)
 }
@@ -32,31 +33,24 @@ func NewService(repo Repository, uidGenerator uid.Generator, adapter stripe.Adap
 	}
 }
 
-func (s *service) CreateCardRequest(ctx context.Context, transferTxn transtxn.TransferTransaction, requestType REQUEST_TYPE, metadata map[string]interface{}) (CardRequest, error) {
+func (s *service) CreateCardRequest(ctx context.Context, cardRequestDTO CardRequestDTO) (CardRequest, error) {
 	id, err := s.uidGenerator.NextID()
 	if err != nil {
 		return CardRequest{}, nil
 	}
 
-	var autoCapture bool
-	if transferTxn.Type == transtxn.CC_DIRECT {
-		autoCapture = true
-	} else {
-		autoCapture = false
-	}
-
 	cardRequest := CardRequest{
 		ID:            id,
-		TransferTxnID: transferTxn.ID,
-		GatewayToken: transferTxn.SourceID,
+		TransferTxnID: cardRequestDTO.ID,
+		GatewayToken:  cardRequestDTO.GatewayToken,
 		// FIXME: better design for supporting multi-gateway
 		Gateway:     STRIPE,
-		Amount:      transferTxn.Amount,
-		Currency:    transferTxn.Currency,
-		RequestType: requestType,
-		AutoCapture: autoCapture,
+		Amount:      cardRequestDTO.Amount,
+		Currency:    cardRequestDTO.Currency,
+		RequestType: cardRequestDTO.RequestType,
+		AutoCapture: cardRequestDTO.AutoCapture,
 		Status:      CREATED,
-		Metadata:    metadata,
+		Metadata:    cardRequestDTO.Metadata,
 	}
 
 	cardRequest, err = s.repo.AddCardRequest(ctx, cardRequest)

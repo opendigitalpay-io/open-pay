@@ -7,8 +7,8 @@ import (
 
 type CCTransferTransactionStrategy struct {
 	TransferTransaction
-	transferObserver tcc.Observer
-	service          Service
+	TransferObserver tcc.Observer
+	Service          Service
 }
 
 func (c *CCTransferTransactionStrategy) GetStatus() tcc.STATUS {
@@ -16,19 +16,69 @@ func (c *CCTransferTransactionStrategy) GetStatus() tcc.STATUS {
 }
 
 func (c *CCTransferTransactionStrategy) AddObserver(observer tcc.Observer) {
-	c.transferObserver = observer
+	c.TransferObserver = observer
 }
 
 func (c *CCTransferTransactionStrategy) Try(ctx context.Context) error {
-	//resp: = c.service.callGateway(c)
-	//c.Observer.OnCancelFailCallback()
+	c.Status = tcc.TRY_STARTED
+	c.Service.UpdateTransferTransaction(ctx, c.TransferTransaction)
+
+	transferTransaction, err := c.Service.CCAuth(ctx, c.TransferTransaction)
+	if err != nil {
+		c.Status = tcc.TRY_FAILED
+		c.Service.UpdateTransferTransaction(ctx, c.TransferTransaction)
+
+		c.TransferObserver.OnTrySuccessCallback(ctx)
+		return err
+	}
+
+	c.TransferTransaction = transferTransaction
+	c.Status = tcc.TRY_SUCCEEDED
+	c.Service.UpdateTransferTransaction(ctx, c.TransferTransaction)
+
+	c.TransferObserver.OnTrySuccessCallback(ctx)
 	return nil
 }
 
 func (c *CCTransferTransactionStrategy) Commit(ctx context.Context) error {
+	c.Status = tcc.COMMIT_STARTED
+	c.Service.UpdateTransferTransaction(ctx, c.TransferTransaction)
+
+	transferTransaction, err := c.Service.CCCapture(ctx, c.TransferTransaction)
+	if err != nil {
+		c.Status = tcc.COMMIT_FAILED
+		c.Service.UpdateTransferTransaction(ctx, c.TransferTransaction)
+
+		c.TransferObserver.OnCommitFailCallback(ctx)
+		return err
+	}
+
+	c.TransferTransaction = transferTransaction
+	c.Status = tcc.COMMIT_SUCCEEDED
+	c.Service.UpdateTransferTransaction(ctx, c.TransferTransaction)
+
+	c.TransferObserver.OnCommitSuccessCallback(ctx)
 	return nil
 }
 
 func (c *CCTransferTransactionStrategy) Cancel(ctx context.Context) error {
+	c.Status = tcc.CANCEL_STARTED
+	c.Service.UpdateTransferTransaction(ctx, c.TransferTransaction)
+
+	// TODO: CCRefund
+	//transferTransaction, err := c.TransferTransaction, nil
+	//c.TransferTransaction = transferTransaction
+	//if err != nil {
+	//	c.Status = tcc.CANCEL_FAILED
+	//	c.Service.UpdateTransferTransaction(ctx, c.TransferTransaction)
+	//
+	//	c.TransferObserver.OnCancelFailCallback(ctx)
+	//	return err
+	//}
+
+	c.Status = tcc.CANCEL_SUCCEEDED
+	c.Service.UpdateTransferTransaction(ctx, c.TransferTransaction)
+
+	c.TransferObserver.OnCancelSuccessCallback(ctx)
 	return nil
 }

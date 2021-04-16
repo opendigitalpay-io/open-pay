@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/opendigitalpay-io/open-pay/external/balance"
 	"github.com/opendigitalpay-io/open-pay/internal/common/uid"
-	"github.com/opendigitalpay-io/open-pay/internal/tcc"
+	"github.com/opendigitalpay-io/open-pay/internal/gateway"
 )
 
 type Service interface {
@@ -14,6 +14,9 @@ type Service interface {
 	TryWalletPay(context.Context, TransferTransaction) (TransferTransaction, error)
 	CommitWalletPay(context.Context, TransferTransaction) (TransferTransaction, error)
 	CancelWalletPay(context.Context, TransferTransaction) (TransferTransaction, error)
+
+	CCAuth(context.Context, TransferTransaction) (TransferTransaction, error)
+	CCCapture(context.Context, TransferTransaction) (TransferTransaction, error)
 }
 
 type Repository interface {
@@ -24,14 +27,15 @@ type Repository interface {
 type service struct {
 	repo           Repository
 	balanceAdapter balance.Adapter
+	gatewayService gateway.Service
 	uidGenerator   uid.Generator
-	// TODO: Add gateway service when it is available
 }
 
-func NewService(repo Repository, balanceAdapter balance.Adapter, uidGenerator uid.Generator) Service {
+func NewService(repo Repository, balanceAdapter balance.Adapter, gatewayService gateway.Service, uidGenerator uid.Generator) Service {
 	return &service{
 		repo:           repo,
 		balanceAdapter: balanceAdapter,
+		gatewayService: gatewayService,
 		uidGenerator:   uidGenerator,
 	}
 }
@@ -72,8 +76,8 @@ func (s *service) TryWalletPay(ctx context.Context, transferTxn TransferTransact
 	case WALLET_PAY_EXTERNAL:
 		tryPayResp, err = s.balanceAdapter.TryExternalPay(idemKey, req)
 	case WALLET_PAY:
-	default:
 		tryPayResp, err = s.balanceAdapter.TryPay(idemKey, req)
+	default:
 	}
 
 	if err != nil {
@@ -81,13 +85,7 @@ func (s *service) TryWalletPay(ctx context.Context, transferTxn TransferTransact
 	}
 
 	transferTxn.WalletPID = tryPayResp.ID
-	transferTxn.Status = tcc.TRY_SUCCEEDED
-	updatedTransferTxn, err := s.repo.UpdateTransferTransaction(ctx, transferTxn)
-	if err != nil {
-		return TransferTransaction{}, err
-	}
-
-	return updatedTransferTxn, nil
+	return transferTxn, nil
 }
 
 func (s *service) CommitWalletPay(ctx context.Context, transferTxn TransferTransaction) (TransferTransaction, error) {
@@ -105,13 +103,7 @@ func (s *service) CommitWalletPay(ctx context.Context, transferTxn TransferTrans
 		return TransferTransaction{}, err
 	}
 
-	transferTxn.Status = tcc.COMMIT_SUCCEEDED
-	updatedTransferTxn, err := s.repo.UpdateTransferTransaction(ctx, transferTxn)
-	if err != nil {
-		return TransferTransaction{}, err
-	}
-
-	return updatedTransferTxn, nil
+	return transferTxn, nil
 }
 
 func (s *service) CancelWalletPay(ctx context.Context, transferTxn TransferTransaction) (TransferTransaction, error) {
@@ -129,11 +121,58 @@ func (s *service) CancelWalletPay(ctx context.Context, transferTxn TransferTrans
 		return TransferTransaction{}, err
 	}
 
-	transferTxn.Status = tcc.CANCEL_SUCCEEDED
-	updatedTransferTxn, err := s.repo.UpdateTransferTransaction(ctx, transferTxn)
+	return transferTxn, nil
+}
+
+func (s *service) CCAuth(ctx context.Context, transferTxn TransferTransaction) (TransferTransaction, error) {
+	cardRequestDTO := gateway.CardRequestDTO{
+		ID: transferTxn.ID,
+		GatewayToken: transferTxn.SourceID,
+		Amount: transferTxn.Amount,
+		Currency: transferTxn.Currency,
+		RequestType: gateway.AUTHORIZE,
+		AutoCapture: transferTxn.Type == CC_DIRECT,
+		Metadata: nil,
+	}
+
+	cardRequest, err := s.gatewayService.CreateCardRequest(ctx, cardRequestDTO)
 	if err != nil {
 		return TransferTransaction{}, err
 	}
 
-	return updatedTransferTxn, nil
+	_, err = s.gatewayService.Authorize(ctx, cardRequest)
+	if err != nil {
+		// TODO: error handling: add errorCode & errorMsg into transferTxn
+		return TransferTransaction{}, err
+	}
+
+	return transferTxn, nil
+}
+
+func (s *service) CCCapture(ctx context.Context, transferTxn TransferTransaction) (TransferTransaction, error) {
+	if transferTxn.Type == CC_DIRECT {
+		return transferTxn, nil
+	}
+	cardRequestDTO := gateway.CardRequestDTO{
+		ID: transferTxn.ID,
+		GatewayToken: transferTxn.SourceID,
+		Amount: transferTxn.Amount,
+		Currency: transferTxn.Currency,
+		RequestType: gateway.CAPTURE,
+		AutoCapture: false,
+		Metadata: nil,
+	}
+
+	cardRequest, err := s.gatewayService.CreateCardRequest(ctx, cardRequestDTO)
+	if err != nil {
+		return TransferTransaction{}, err
+	}
+
+	_, err = s.gatewayService.Capture(ctx, cardRequest)
+	if err != nil {
+		// TODO: error handling: add errorCode & errorMsg into transferTxn
+		return TransferTransaction{}, err
+	}
+
+	return transferTxn, nil
 }

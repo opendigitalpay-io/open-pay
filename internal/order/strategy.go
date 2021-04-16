@@ -8,8 +8,8 @@ import (
 
 type Strategy struct {
 	domain.Order
-	transferStrategy tcc.Strategy
-	service          Service
+	TransferStrategy tcc.Strategy
+	Service          Service
 }
 
 func (s *Strategy) GetStatus() tcc.STATUS {
@@ -21,60 +21,51 @@ func (s *Strategy) AddObserver(tcc.Observer) {
 
 func (s *Strategy) Try(ctx context.Context) error {
 	s.Status = tcc.TRY_STARTED
-	_, err := s.service.UpdateOrder(ctx, s.Order)
-	if err != nil {
-		return err
-	}
+	s.Service.UpdateOrder(ctx, s.Order)
 
-	return s.transferStrategy.Try(ctx)
+	return s.TransferStrategy.Try(ctx)
 }
 
 func (s *Strategy) Commit(ctx context.Context) error {
 	s.Status = tcc.COMMIT_STARTED
-	_, err := s.service.UpdateOrder(ctx, s.Order)
-	if err != nil {
-		return err
-	}
+	s.Service.UpdateOrder(ctx, s.Order)
 
-	return s.transferStrategy.Commit(ctx)
+	return s.TransferStrategy.Commit(ctx)
 }
 
 func (s *Strategy) Cancel(ctx context.Context) error {
 	s.Status = tcc.CANCEL_STARTED
-	_, err := s.service.UpdateOrder(ctx, s.Order)
-	if err != nil {
-		return err
-	}
+	s.Service.UpdateOrder(ctx, s.Order)
 
-	return s.transferStrategy.Cancel(ctx)
+	return s.TransferStrategy.Cancel(ctx)
 }
 
 func (s *Strategy) OnTrySuccessCallback(ctx context.Context) {
 	s.Status = tcc.TRY_SUCCEEDED
-	s.service.UpdateOrder(ctx, s.Order)
+	s.Service.UpdateOrder(ctx, s.Order)
 }
 
 func (s *Strategy) OnTryFailCallback(ctx context.Context) {
 	s.Status = tcc.TRY_FAILED
-	s.service.UpdateOrder(ctx, s.Order)
+	s.Service.UpdateOrder(ctx, s.Order)
 }
 
 func (s *Strategy) OnCommitSuccessCallback(ctx context.Context) {
 	s.Status = tcc.COMMIT_SUCCEEDED
-	s.service.UpdateOrder(ctx, s.Order)
+	s.Service.UpdateOrder(ctx, s.Order)
 }
 
 func (s *Strategy) OnCommitFailCallback(ctx context.Context) {
 	s.Status = tcc.COMMIT_FAILED
-	s.service.UpdateOrder(ctx, s.Order)
+	s.Service.UpdateOrder(ctx, s.Order)
 }
 
 func (s *Strategy) OnCancelSuccessCallback(ctx context.Context) {
 	s.Status = tcc.CANCEL_SUCCEEDED
-	s.service.UpdateOrder(ctx, s.Order)
+	s.Service.UpdateOrder(ctx, s.Order)
 }
 
 func (s *Strategy) OnCancelFailCallback(ctx context.Context) {
 	s.Status = tcc.CANCEL_FAILED
-	s.service.UpdateOrder(ctx, s.Order)
+	s.Service.UpdateOrder(ctx, s.Order)
 }

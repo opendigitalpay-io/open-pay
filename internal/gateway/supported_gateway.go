@@ -8,8 +8,6 @@ const (
 
 var supported_gateway = [...]string{
 	"STRIPE",
-	"COMPLETED",
-	"FAILED",
 }
 
 func (s *SUPPORTED_GATEWAY) String() string {

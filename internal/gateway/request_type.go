@@ -9,9 +9,9 @@ const (
 )
 
 var request_type = [...]string{
-	"CREATED",
-	"COMPLETED",
-	"FAILED",
+	"AUTHORIZE",
+	"CAPTURE",
+	"REFUND",
 }
 
 func (s *REQUEST_TYPE) String() string {
