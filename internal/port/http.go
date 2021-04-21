@@ -9,24 +9,25 @@ import (
 	"github.com/opendigitalpay-io/open-pay/internal/common/server"
 	"github.com/opendigitalpay-io/open-pay/internal/domain"
 	"github.com/opendigitalpay-io/open-pay/internal/order"
+	"github.com/opendigitalpay-io/open-pay/internal/pay"
 	"github.com/opendigitalpay-io/open-pay/internal/refund"
 	"github.com/opendigitalpay-io/open-pay/internal/storage"
 	"github.com/opendigitalpay-io/open-pay/internal/topup"
 )
 
 type HTTPServer struct {
-	orderService    order.Service
-	orderPayService order.PayService
-	topUpService    topup.Service
-	refundService   refund.Service
+	orderService  order.Service
+	payService    pay.Service
+	topUpService  topup.Service
+	refundService refund.Service
 }
 
-func NewHTTPServer(orderService order.Service, orderPayService order.PayService, topUpService topup.Service, refundService refund.Service) *HTTPServer {
+func NewHTTPServer(orderService order.Service, payService pay.Service, topUpService topup.Service, refundService refund.Service) *HTTPServer {
 	return &HTTPServer{
-		orderService:    orderService,
-		orderPayService: orderPayService,
-		topUpService:    topUpService,
-		refundService:   refundService,
+		orderService:  orderService,
+		payService:    payService,
+		topUpService:  topUpService,
+		refundService: refundService,
 	}
 }
 

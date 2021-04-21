@@ -83,7 +83,7 @@ func (h *HTTPServer) PayOrder() func(ctx *gin.Context) {
 			return
 		}
 
-		err = h.orderPayService.PayOrder(ctx, uriParam.ID, req)
+		err = h.payService.PayOrder(ctx, uriParam.ID, req)
 		if err != nil {
 			h.RespondWithError(ctx, err)
 			return

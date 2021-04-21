@@ -12,8 +12,9 @@ type transferTransactionModel struct {
 	ID               uint64 `gorm:"primary_key"`
 	TransferID       uint64
 	SourceID         string
+	CustomerID       uint64
 	DestinationID    uint64
-	WalletPID        uint64
+	WalletPID        uint64 `gorm:"column:wallet_pid"`
 	GatewayRequestID uint64
 	Type             string
 	Amount           int64
@@ -34,6 +35,7 @@ func (t *transferTransactionModel) model(txn transtxn.TransferTransaction) error
 	t.ID = txn.ID
 	t.TransferID = txn.TransferID
 	t.SourceID = txn.SourceID
+	t.CustomerID = txn.CustomerID
 	t.DestinationID = txn.DestinationID
 	t.WalletPID = txn.WalletPID
 	t.GatewayRequestID = txn.GatewayRequestID
@@ -63,10 +65,11 @@ func (t *transferTransactionModel) domain() (transtxn.TransferTransaction, error
 		ID:               t.ID,
 		TransferID:       t.TransferID,
 		SourceID:         t.SourceID,
+		CustomerID:       t.CustomerID,
 		DestinationID:    t.DestinationID,
 		WalletPID:        t.WalletPID,
 		GatewayRequestID: t.GatewayRequestID,
-		Type:             t.Type,
+		Type:             transtxn.Type(t.Type),
 		Amount:           t.Amount,
 		Currency:         t.Currency,
 		Status:           tcc.STATUS(t.Status),

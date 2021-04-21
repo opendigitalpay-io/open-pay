@@ -26,7 +26,7 @@ type cardRequestModel struct {
 }
 
 func (c *cardRequestModel) TableName() string {
-	return "card_request"
+	return "card_requests"
 }
 
 func (c *cardRequestModel) model(request gateway.CardRequest) error {

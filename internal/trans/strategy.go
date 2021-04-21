@@ -7,9 +7,9 @@ import (
 
 type Strategy struct {
 	Transfer
-	orderObserver         tcc.Observer
-	transferTxnStrategies []tcc.Strategy
-	service               Service
+	OrderObserver         tcc.Observer
+	TransferTxnStrategies []tcc.Strategy
+	Service               Service
 }
 
 func (s *Strategy) GetStatus() tcc.STATUS {
@@ -17,17 +17,15 @@ func (s *Strategy) GetStatus() tcc.STATUS {
 }
 
 func (s *Strategy) AddObserver(observer tcc.Observer) {
-	s.orderObserver = observer
+	s.OrderObserver = observer
 }
 
 func (s *Strategy) Try(ctx context.Context) error {
 	s.Status = tcc.TRY_STARTED
-	_, err := s.service.UpdateTransfer(ctx, s.Transfer)
-	if err != nil {
-		return err
-	}
-	for _, transferTxnStrategy := range s.transferTxnStrategies {
-		err = transferTxnStrategy.Try(ctx)
+	s.Service.UpdateTransfer(ctx, s.Transfer)
+
+	for _, transferTxnStrategy := range s.TransferTxnStrategies {
+		err := transferTxnStrategy.Try(ctx)
 		if err != nil {
 			return err
 		}
@@ -37,12 +35,10 @@ func (s *Strategy) Try(ctx context.Context) error {
 
 func (s *Strategy) Commit(ctx context.Context) error {
 	s.Status = tcc.COMMIT_STARTED
-	_, err := s.service.UpdateTransfer(ctx, s.Transfer)
-	if err != nil {
-		return err
-	}
-	for _, transferTxnStrategy := range s.transferTxnStrategies {
-		err = transferTxnStrategy.Commit(ctx)
+	s.Service.UpdateTransfer(ctx, s.Transfer)
+
+	for _, transferTxnStrategy := range s.TransferTxnStrategies {
+		err := transferTxnStrategy.Commit(ctx)
 		if err != nil {
 			return err
 		}
@@ -52,12 +48,10 @@ func (s *Strategy) Commit(ctx context.Context) error {
 
 func (s *Strategy) Cancel(ctx context.Context) error {
 	s.Status = tcc.CANCEL_STARTED
-	_, err := s.service.UpdateTransfer(ctx, s.Transfer)
-	if err != nil {
-		return err
-	}
-	for _, transferTxnStrategy := range s.transferTxnStrategies {
-		err = transferTxnStrategy.Cancel(ctx)
+	s.Service.UpdateTransfer(ctx, s.Transfer)
+
+	for _, transferTxnStrategy := range s.TransferTxnStrategies {
+		err := transferTxnStrategy.Cancel(ctx)
 		if err != nil {
 			return err
 		}
@@ -68,47 +62,47 @@ func (s *Strategy) Cancel(ctx context.Context) error {
 func (s *Strategy) OnTrySuccessCallback(ctx context.Context) {
 	if s.allTransferTxnStrategiesMatch(tcc.TRY_SUCCEEDED) {
 		s.Status = tcc.TRY_SUCCEEDED
-		s.service.UpdateTransfer(ctx, s.Transfer)
-		s.orderObserver.OnTrySuccessCallback(ctx)
+		s.Service.UpdateTransfer(ctx, s.Transfer)
+		s.OrderObserver.OnTrySuccessCallback(ctx)
 	}
 }
 
 func (s *Strategy) OnTryFailCallback(ctx context.Context) {
 	s.Status = tcc.TRY_FAILED
-	s.service.UpdateTransfer(ctx, s.Transfer)
-	s.orderObserver.OnTryFailCallback(ctx)
+	s.Service.UpdateTransfer(ctx, s.Transfer)
+	s.OrderObserver.OnTryFailCallback(ctx)
 }
 
 func (s *Strategy) OnCommitSuccessCallback(ctx context.Context) {
 	if s.allTransferTxnStrategiesMatch(tcc.COMMIT_SUCCEEDED) {
 		s.Status = tcc.COMMIT_SUCCEEDED
-		s.service.UpdateTransfer(ctx, s.Transfer)
-		s.orderObserver.OnCommitSuccessCallback(ctx)
+		s.Service.UpdateTransfer(ctx, s.Transfer)
+		s.OrderObserver.OnCommitSuccessCallback(ctx)
 	}
 }
 
 func (s *Strategy) OnCommitFailCallback(ctx context.Context) {
 	s.Status = tcc.COMMIT_FAILED
-	s.service.UpdateTransfer(ctx, s.Transfer)
-	s.orderObserver.OnCommitFailCallback(ctx)
+	s.Service.UpdateTransfer(ctx, s.Transfer)
+	s.OrderObserver.OnCommitFailCallback(ctx)
 }
 
 func (s *Strategy) OnCancelSuccessCallback(ctx context.Context) {
 	if s.allTransferTxnStrategiesMatch(tcc.CANCEL_SUCCEEDED) {
 		s.Status = tcc.CANCEL_SUCCEEDED
-		s.service.UpdateTransfer(ctx, s.Transfer)
-		s.orderObserver.OnCancelSuccessCallback(ctx)
+		s.Service.UpdateTransfer(ctx, s.Transfer)
+		s.OrderObserver.OnCancelSuccessCallback(ctx)
 	}
 }
 
 func (s *Strategy) OnCancelFailCallback(ctx context.Context) {
 	s.Status = tcc.CANCEL_FAILED
-	s.service.UpdateTransfer(ctx, s.Transfer)
-	s.orderObserver.OnCancelFailCallback(ctx)
+	s.Service.UpdateTransfer(ctx, s.Transfer)
+	s.OrderObserver.OnCancelFailCallback(ctx)
 }
 
 func (s *Strategy) allTransferTxnStrategiesMatch(status tcc.STATUS) bool {
-	for _, transferTxnStrategy := range s.transferTxnStrategies {
+	for _, transferTxnStrategy := range s.TransferTxnStrategies {
 		if transferTxnStrategy.GetStatus() != status {
 			return false
 		}
